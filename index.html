@@ -325,16 +325,24 @@
             });
         }
         
-        // Atualizar finanças
-        function updateFinance() {
-            const custoTotal = 285200;
-            const receitaPorContrato = 100;
-            const totalContratos = parseInt(totalVendas.textContent.replace(/\./g, '')) || 0;
-            const receitaTotal = totalContratos * receitaPorContrato;
-            const lucro = receitaTotal - custoTotal;
-            financeResults.innerHTML = `<p><strong>Receita Total:</strong> R$ ${receitaTotal.toLocaleString('pt-BR')} | <strong>Lucro:</strong> R$ ${lucro.toLocaleString('pt-BR')}</p>`;
-        }
-        
+        // Atualizar finanças - soma apenas dos vendedores 1-30
+function updateFinance() {
+    const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
+    const receita = sumVendas * 100;
+    const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
+    const bonus = atingiram * 1200;
+    const custoTotalOperacao = 285200;
+    const custoTotal = custoTotalOperacao + bonus;
+    const lucro = receita - custoTotal;
+    
+    financeResults.innerHTML = `
+        <p><strong>Contratos (Vendas Totais dos Vendedores):</strong> ${sumVendas}</p>
+        <p><strong>Receita:</strong> R$ ${receita.toLocaleString('pt-BR')}</p>
+        <p><strong>Bônus Vendedores:</strong> R$ ${bonus.toLocaleString('pt-BR')} (${atingiram} vendedores atingiram 10% x R$ 1.200)</p>
+        <p><strong>Custo Total da Operação:</strong> R$ ${custoTotalOperacao.toLocaleString('pt-BR')}</p>
+        <p><strong>Custo Total:</strong> R$ ${custoTotal.toLocaleString('pt-BR')}</p>
+        <p><strong>Lucro Líquido:</strong> R$ ${lucro.toLocaleString('pt-BR')} ${lucro >= 0 ? '(Lucro)' : '(Prejuízo)'}</p>
+
         // Carregar dados automaticamente ao abrir a página
         carregarDadosDaPlanilha();
         
