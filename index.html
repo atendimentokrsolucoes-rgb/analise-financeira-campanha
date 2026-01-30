@@ -191,14 +191,14 @@
                     return;
                 }
                 
-                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 linhas
+                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 vendedores
                 sheetData.slice(1, 31).forEach((linha, index) => {  // slice(1,31) para pegar 30 vendedores
-                    const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;  // Chave vazia para nome
+                    const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;
                     sellers[index].nome = vendedorNome;
                     
                     // Processar dias (DIA 1 a DIA 40) - com espaço
                     for (let d = 1; d <= 40; d++) {
-                        const chaveDia = `DIA ${d}`;  // Com espaço
+                        const chaveDia = `DIA ${d}`;
                         const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
                         const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
                         sellers[index].days[d-1].leads = leads;
