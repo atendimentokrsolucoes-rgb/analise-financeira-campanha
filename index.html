@@ -155,194 +155,194 @@
         </div>
     </div>
     
-   <script>
-    const tableBody = document.querySelector('#dataTable tbody');
-    const sellersContainer = document.getElementById('sellersContainer');
-    const totalDistribuida = document.getElementById('totalDistribuida');
-    const totalVendas = document.getElementById('totalVendas');
-    const totalConversao = document.getElementById('totalConversao');
-    const financeResults = document.getElementById('financeResults');
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    
-    let chart;
-    const days = 40;
-    const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
-    const sellers = Array.from({length: 31}, (_, i) => ({
-        nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
-        days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
-        totalLeads: 0,
-        totalVendas: 0,
-        totalConversao: 0,
-        atingiuGeral: false
-    }));
-    
-    // Função para carregar dados da planilha via SheetDB
-    async function carregarDadosDaPlanilha() {
-        try {
-            console.log('Carregando dados...');
-            const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
-            const sheetData = await response.json();
-            console.log('Número de linhas no JSON:', sheetData.length);
-            console.log('Primeiro item (cabeçalho):', sheetData[0]);
-            console.log('Segundo item (vendedor 1):', sheetData[1]);
-            
-            if (sheetData.length < 2) {
-                console.error('JSON tem menos de 2 linhas. Verifique a planilha e SheetDB.');
-                return;
-            }
-            
-            // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 linhas
-            sheetData.slice(1, 31).forEach((linha, index) => {  // slice(1,31) para pegar 30 vendedores
-                const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;  // Chave vazia para nome
-                sellers[index].nome = vendedorNome;
-                
-                // Processar dias (DIA 1 a DIA 40) - com espaço
-                for (let d = 1; d <= 40; d++) {
-                    const chaveDia = `DIA ${d}`;  // Com espaço
-                    const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
-                    const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
-                    sellers[index].days[d-1].leads = leads;
-                    sellers[index].days[d-1].vendas = vendas;
-                    sellers[index].days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
-                    sellers[index].days[d-1].atingiu = vendas >= 7;
-                }
-                calculateSellerTotals(index);
-            });
-            
-            calculateGlobalData();
-            renderTable();
-            renderSellersTable();
-            updateChart();
-            updateFinance();
-            console.log('Sucesso! Tabelas atualizadas.');
-        } catch (error) {
-            console.error('Erro:', error);
-            financeResults.innerHTML = '<p class="error">Erro ao carregar dados.</p>';
-        }
-    }
-    
-    // Gerar tabela por dia
-    function renderTable() {
-        console.log('Renderizando tabela por dia...');
-        tableBody.innerHTML = '';
-        data.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${row.dia}</td>
-                <td>${row.distribuida}</td>
-                <td>${row.vendas}</td>
-                <td>${row.conversao.toFixed(2)}%</td>
-            `;
-            tableBody.appendChild(tr);
-        });
-        console.log('Tabela por dia renderizada.');
-    }
-    
-    // Gerar tabela de vendedores
-    function renderSellersTable() {
-        console.log('Renderizando tabela de vendedores...');
-        sellersContainer.innerHTML = '';
-        sellers.forEach((seller, sellerIndex) => {
-            const sellerDiv = document.createElement('div');
-            sellerDiv.className = 'seller-section';
-            sellerDiv.innerHTML = `
-                <div class="seller-header" onclick="toggleSeller(${sellerIndex})">${seller.nome} - Total Leads: ${seller.totalLeads} | Total Vendas: ${seller.totalVendas} | Conversão: ${seller.totalConversao.toFixed(2)}% | Status: <span class="${seller.atingiuGeral ? 'success' : 'error'}">${seller.atingiuGeral ? 'Atingiu Meta Geral' : 'Não Atingiu'}</span></div>
-                <div class="seller-details" id="seller-${sellerIndex}">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Dia</th>
-                                <th>Leads Distribuídos</th>
-                                <th>Vendas</th>
-                                <th>Conversão (%)</th>
-                                <th>Status Meta (7 vendas/dia)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${seller.days.map((day) => `
-                                <tr>
-                                    <td>${day.dia}</td>
-                                    <td>${day.leads}</td>
-                                    <td>${day.vendas}</td>
-                                    <td>${day.conversao.toFixed(2)}%</td>
-                                    <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            sellersContainer.appendChild(sellerDiv);
-        });
-        console.log('Tabela de vendedores renderizada.');
-    }
-    
-    // Toggle para expandir/recolher vendedor
-    function toggleSeller(index) {
-        const details = document.getElementById(`seller-${index}`);
-        details.style.display = details.style.display === 'none' ? 'block' : 'none';
-    }
-    
-    // Calcular totais por vendedor
-    function calculateSellerTotals(sellerIndex) {
-        const seller = sellers[sellerIndex];
-        seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
-        seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
-        seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
-        seller.atingiuGeral = seller.totalConversao >= 10;
-    }
-    
-    // Calcular dados globais (tabela por dia) - soma apenas dos vendedores 1-30
-    function calculateGlobalData() {
-        for (let d = 0; d < days; d++) {
-            data[d].distribuida = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].leads, 0);
-            data[d].vendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].vendas, 0);
-            data[d].conversao = data[d].distribuida > 0 ? (data[d].vendas / data[d].distribuida) * 100 : 0;
-        }
-        const sumDistribuida = data.reduce((sum, row) => sum + row.distribuida, 0);
-        const sumVendas = data.reduce((sum, row) => sum + row.vendas, 0);
-        const avgConversao = sumDistribuida > 0 ? (sumVendas / sumDistribuida) * 100 : 0;
+    <script>
+        const tableBody = document.querySelector('#dataTable tbody');
+        const sellersContainer = document.getElementById('sellersContainer');
+        const totalDistribuida = document.getElementById('totalDistribuida');
+        const totalVendas = document.getElementById('totalVendas');
+        const totalConversao = document.getElementById('totalConversao');
+        const financeResults = document.getElementById('financeResults');
+        const ctx = document.getElementById('progressChart').getContext('2d');
         
-        totalDistribuida.textContent = sumDistribuida;
-        totalVendas.textContent = sumVendas;
-        totalConversao.textContent = avgConversao.toFixed(2) + '%';
-    }
-    
-    // Atualizar gráfico
-    function updateChart() {
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(d => `Dia ${d.dia}`),
-                datasets: [
-                    { label: 'Distribuída', data: data.map(d => d.distribuida), borderColor: 'blue', fill: false },
-                    { label: 'Vendas', data: data.map(d => d.vendas), borderColor: 'green', fill: false },
-                    { label: 'Meta (210)', data: Array(days).fill(210), borderColor: 'red', borderDash: [5, 5], fill: false }
-                ]
-            },
-            options: { responsive: true }
-        });
-    }
-    
-    // Atualizar finanças
-    function updateFinance() {
-        const custoTotal = 285200;
-        const receitaPorContrato = 100;
-        const totalContratos = parseInt(totalVendas.textContent.replace(/\./g, '')) || 0;
-        const receitaTotal = totalContratos * receitaPorContrato;
-        const lucro = receitaTotal - custoTotal;
-        financeResults.innerHTML = `<p><strong>Receita Total:</strong> R$ ${receitaTotal.toLocaleString('pt-BR')} | <strong>Lucro:</strong> R$ ${lucro.toLocaleString('pt-BR')}</p>`;
-    }
-    
-    // Carregar dados automaticamente ao abrir a página
-    carregarDadosDaPlanilha();
-    
-    // Atualizar automaticamente a cada 30 segundos
-    setInterval(() => {
-        financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
+        let chart;
+        const days = 40;
+        const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
+        const sellers = Array.from({length: 31}, (_, i) => ({
+            nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
+            totalLeads: 0,
+            totalVendas: 0,
+            totalConversao: 0,
+            atingiuGeral: false
+        }));
+        
+        // Função para carregar dados da planilha via SheetDB
+        async function carregarDadosDaPlanilha() {
+            try {
+                console.log('Carregando dados...');
+                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                const sheetData = await response.json();
+                console.log('Número de linhas no JSON:', sheetData.length);
+                console.log('Primeiro item (cabeçalho):', sheetData[0]);
+                console.log('Segundo item (vendedor 1):', sheetData[1]);
+                
+                if (sheetData.length < 2) {
+                    console.error('JSON tem menos de 2 linhas. Verifique a planilha e SheetDB.');
+                    return;
+                }
+                
+                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 linhas
+                sheetData.slice(1, 31).forEach((linha, index) => {  // slice(1,31) para pegar 30 vendedores
+                    const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;  // Chave vazia para nome
+                    sellers[index].nome = vendedorNome;
+                    
+                    // Processar dias (DIA 1 a DIA 40) - com espaço
+                    for (let d = 1; d <= 40; d++) {
+                        const chaveDia = `DIA ${d}`;  // Com espaço
+                        const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
+                        const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
+                        sellers[index].days[d-1].leads = leads;
+                        sellers[index].days[d-1].vendas = vendas;
+                        sellers[index].days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
+                        sellers[index].days[d-1].atingiu = vendas >= 7;
+                    }
+                    calculateSellerTotals(index);
+                });
+                
+                calculateGlobalData();
+                renderTable();
+                renderSellersTable();
+                updateChart();
+                updateFinance();
+                console.log('Sucesso! Tabelas atualizadas.');
+            } catch (error) {
+                console.error('Erro:', error);
+                financeResults.innerHTML = '<p class="error">Erro ao carregar dados.</p>';
+            }
+        }
+        
+        // Gerar tabela por dia
+        function renderTable() {
+            console.log('Renderizando tabela por dia...');
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.dia}</td>
+                    <td>${row.distribuida}</td>
+                    <td>${row.vendas}</td>
+                    <td>${row.conversao.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            console.log('Tabela por dia renderizada.');
+        }
+        
+        // Gerar tabela de vendedores
+        function renderSellersTable() {
+            console.log('Renderizando tabela de vendedores...');
+            sellersContainer.innerHTML = '';
+            sellers.forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSeller(${sellerIndex})">${seller.nome} - Total Leads: ${seller.totalLeads} | Total Vendas: ${seller.totalVendas} | Conversão: ${seller.totalConversao.toFixed(2)}% | Status: <span class="${seller.atingiuGeral ? 'success' : 'error'}">${seller.atingiuGeral ? 'Atingiu Meta Geral' : 'Não Atingiu'}</span></div>
+                    <div class="seller-details" id="seller-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.map((day) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                sellersContainer.appendChild(sellerDiv);
+            });
+            console.log('Tabela de vendedores renderizada.');
+        }
+        
+        // Toggle para expandir/recolher vendedor
+        function toggleSeller(index) {
+            const details = document.getElementById(`seller-${index}`);
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Calcular totais por vendedor
+        function calculateSellerTotals(sellerIndex) {
+            const seller = sellers[sellerIndex];
+            seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
+            seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
+            seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
+            seller.atingiuGeral = seller.totalConversao >= 10;
+        }
+        
+        // Calcular dados globais (tabela por dia) - soma apenas dos vendedores 1-30
+        function calculateGlobalData() {
+            for (let d = 0; d < days; d++) {
+                data[d].distribuida = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].leads, 0);
+                data[d].vendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].vendas, 0);
+                data[d].conversao = data[d].distribuida > 0 ? (data[d].vendas / data[d].distribuida) * 100 : 0;
+            }
+            const sumDistribuida = data.reduce((sum, row) => sum + row.distribuida, 0);
+            const sumVendas = data.reduce((sum, row) => sum + row.vendas, 0);
+            const avgConversao = sumDistribuida > 0 ? (sumVendas / sumDistribuida) * 100 : 0;
+            
+            totalDistribuida.textContent = sumDistribuida;
+            totalVendas.textContent = sumVendas;
+            totalConversao.textContent = avgConversao.toFixed(2) + '%';
+        }
+        
+        // Atualizar gráfico
+        function updateChart() {
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => `Dia ${d.dia}`),
+                    datasets: [
+                        { label: 'Distribuída', data: data.map(d => d.distribuida), borderColor: 'blue', fill: false },
+                        { label: 'Vendas', data: data.map(d => d.vendas), borderColor: 'green', fill: false },
+                        { label: 'Meta (210)', data: Array(days).fill(210), borderColor: 'red', borderDash: [5, 5], fill: false }
+                    ]
+                },
+                options: { responsive: true }
+            });
+        }
+        
+        // Atualizar finanças
+        function updateFinance() {
+            const custoTotal = 285200;
+            const receitaPorContrato = 100;
+            const totalContratos = parseInt(totalVendas.textContent.replace(/\./g, '')) || 0;
+            const receitaTotal = totalContratos * receitaPorContrato;
+            const lucro = receitaTotal - custoTotal;
+            financeResults.innerHTML = `<p><strong>Receita Total:</strong> R$ ${receitaTotal.toLocaleString('pt-BR')} | <strong>Lucro:</strong> R$ ${lucro.toLocaleString('pt-BR')}</p>`;
+        }
+        
+        // Carregar dados automaticamente ao abrir a página
         carregarDadosDaPlanilha();
-    }, 30000);
-</script>
+        
+        // Atualizar automaticamente a cada 30 segundos
+        setInterval(() => {
+            financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
+            carregarDadosDaPlanilha();
+        }, 30000);
+    </script>
 </body>
 </html>
