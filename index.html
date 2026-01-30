@@ -22,6 +22,7 @@
         .seller-details { display: none; }
         canvas { max-width: 100%; height: 400px; margin-top: 20px; }
         .premissas { background: #f9f9f9; padding: 15px; border-radius: 5px; }
+        .loading { text-align: center; color: #666; }
     </style>
 </head>
 <body>
@@ -135,7 +136,8 @@
         </div>
         
         <div class="section">
-            <h2>Tabela de Vendedores (Editável por Dia)</h2>
+            <h2>Tabela de Vendedores (Dados Carregados da Planilha)</h2>
+            <p>Dados sincronizados automaticamente. <button onclick="carregarDadosDaPlanilha()">Atualizar Agora</button></p>
             <div id="sellersContainer">
                 <!-- Vendedores gerados dinamicamente -->
             </div>
@@ -167,12 +169,47 @@
         const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
         const sellers = Array.from({length: 31}, (_, i) => ({
             nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
-            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })), // Começa zerado
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
             totalLeads: 0,
             totalVendas: 0,
             totalConversao: 0,
             atingiuGeral: false
         }));
+        
+        // Função para carregar dados da planilha via SheetDB
+        async function carregarDadosDaPlanilha() {
+            try {
+                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                const sheetData = await response.json();
+                
+                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados)
+                sheetData.slice(1, 32).forEach((linha, index) => {  // slice(1,32) para linhas 2-32 se houver 31 linhas
+                    const vendedorNome = linha.Vendedor || `Vendedor ${index + 1}`;
+                    sellers[index].nome = vendedorNome;
+                    
+                    // Processar dias (Dia1 a Dia40)
+                    for (let d = 1; d <= 40; d++) {
+                        const chaveDia = `Dia${d}`;
+                        const valor = linha[chaveDia] || '0/0';
+                        const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
+                        sellers[index].days[d-1].leads = leads;
+                        sellers[index].days[d-1].vendas = vendas;
+                        sellers[index].days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
+                        sellers[index].days[d-1].atingiu = vendas >= 7;
+                    }
+                    calculateSellerTotals(index);
+                });
+                
+                calculateGlobalData();
+                renderTable();
+                renderSellersTable();
+                updateChart();
+                updateFinance();
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                financeResults.innerHTML = '<p class="error">Erro ao carregar dados da planilha. Verifique a conexão.</p>';
+            }
+        }
         
         // Gerar tabela por dia (não editável)
         function renderTable() {
@@ -189,7 +226,7 @@
             });
         }
         
-        // Gerar tabela de vendedores
+        // Gerar tabela de vendedores (agora apenas visualização, sem edição)
         function renderSellersTable() {
             sellersContainer.innerHTML = '';
             sellers.forEach((seller, sellerIndex) => {
@@ -209,11 +246,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${seller.days.map((day, dayIndex) => `
+                                ${seller.days.map((day) => `
                                     <tr>
                                         <td>${day.dia}</td>
-                                        <td><input type="number" value="${day.leads}" min="0" onchange="updateSellerDay(${sellerIndex}, ${dayIndex}, 'leads', this.value)"></td>
-                                        <td><input type="number" value="${day.vendas}" min="0" onchange="updateSellerDay(${sellerIndex}, ${dayIndex}, 'vendas', this.value)"></td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
                                         <td>${day.conversao.toFixed(2)}%</td>
                                         <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
                                     </tr>
@@ -230,30 +267,6 @@
         function toggleSeller(index) {
             const details = document.getElementById(`seller-${index}`);
             details.style.display = details.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        // Atualizar dia de vendedor
-        function updateSellerDay(sellerIndex, dayIndex, field, value) {
-            const newValue = parseFloat(value) || 0;
-            sellers[sellerIndex].days[dayIndex][field] = newValue;
-            sellers[sellerIndex].days[dayIndex].conversao = sellers[sellerIndex].days[dayIndex].leads > 0 ? (sellers[sellerIndex].days[dayIndex].vendas / sellers[sellerIndex].days[dayIndex].leads) * 100 : 0;
-            sellers[sellerIndex].days[dayIndex].atingiu = sellers[sellerIndex].days[dayIndex].vendas >= 7;
-            calculateSellerTotals(sellerIndex);
-            
-            // Se for o Template Global (índice 30), propagar para todos os vendedores 1-30
-            if (sellerIndex === 30) {
-                for (let i = 0; i < 30; i++) {
-                    sellers[i].days[dayIndex][field] = newValue;
-                    sellers[i].days[dayIndex].conversao = sellers[i].days[dayIndex].leads > 0 ? (sellers[i].days[dayIndex].vendas / sellers[i].days[dayIndex].leads) * 100 : 0;
-                    sellers[i].days[dayIndex].atingiu = sellers[i].days[dayIndex].vendas >= 7;
-                    calculateSellerTotals(i);
-                }
-            }
-            
-            renderSellersTable(); // Re-renderizar para refletir mudanças
-            calculateGlobalData();
-            updateChart();
-            updateFinance();
         }
         
         // Calcular totais por vendedor
@@ -279,96 +292,43 @@
             totalDistribuida.textContent = sumDistribuida;
             totalVendas.textContent = sumVendas;
             totalConversao.textContent = avgConversao.toFixed(2) + '%';
-            
-            renderTable(); // Re-renderizar a tabela de distribuição
         }
         
         // Atualizar gráfico
         function updateChart() {
-            const labels = data.map(row => `Dia ${row.dia}`);
-            const distribuidaData = data.map(row => row.distribuida);
-            const vendasData = data.map(row => row.vendas);
-            const metaVendas = 210;
-            
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
-                    labels: labels,
+                    labels: data.map(d => `Dia ${d.dia}`),
                     datasets: [
-                        { 
-                            label: 'Distribuída', 
-                            data: distribuidaData, 
-                            backgroundColor: distribuidaData.map(value => value >= 2100 ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)') // Verde se >= 2100, vermelho se < 2100
-                        },
-                        { 
-                            label: 'Vendas', 
-                            data: vendasData, 
-                            backgroundColor: vendasData.map(value => value >= 210 ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)') // Verde se >= 210, vermelho se < 210
-                        },
-                        { label: 'Meta Diária (Vendas)', type: 'line', data: Array(days).fill(metaVendas), borderColor: 'red', fill: false }
+                        { label: 'Distribuída', data: data.map(d => d.distribuida), borderColor: 'blue', fill: false },
+                        { label: 'Vendas', data: data.map(d => d.vendas), borderColor: 'green', fill: false },
+                        { label: 'Meta (210)', data: Array(days).fill(210), borderColor: 'red', borderDash: [5, 5], fill: false }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: { title: { display: true, text: 'Dias' } },
-                        y: { 
-                            title: { display: true, text: 'Quantidade' },
-                            min: 0,
-                            max: 2500,
-                            ticks: {
-                                stepSize: 100
-                            }
-                        }
-                    }
-                }
+                options: { responsive: true }
             });
         }
         
-        // Atualizar finanças - soma apenas dos vendedores 1-30
+        // Atualizar finanças
         function updateFinance() {
-            const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
-            const receita = sumVendas * 100;
-            const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
-            const bonus = atingiram * 1200;
-            const custoTotal = 285200 + bonus;
-            const lucro = receita - custoTotal;
-            
-            financeResults.innerHTML = `
-                <p><strong>Contratos (Vendas Totais dos Vendedores):</strong> ${sumVendas}</p>
-                <p><strong>Receita:</strong> R$ ${receita.toLocaleString('pt-BR')}</p>
-                <p><strong>Bônus Vendedores:</strong> R$ ${bonus.toLocaleString('pt-BR')} (${atingiram} vendedores atingiram 10% x R$ 1.200)</p>
-                <p><strong>Custo Total:</strong> R$ ${custoTotal.toLocaleString('pt-BR')}</p>
-                <p><strong>Lucro Líquido:</strong> R$ ${lucro.toLocaleString('pt-BR')} ${lucro >= 0 ? '(Lucro)' : '(Prejuízo)'}</p>
-            `;
+            const custoTotal = 285200;
+            const receitaPorContrato = 100; // Ajuste conforme sua lógica real (ex.: valor médio por contrato)
+            const totalContratos = parseInt(totalVendas.textContent.replace(/\./g, '')) || 0; // Remove pontos se houver formatação
+            const receitaTotal = totalContratos * receitaPorContrato;
+            const lucro = receitaTotal - custoTotal;
+            financeResults.innerHTML = `<p><strong>Receita Total:</strong> R$ ${receitaTotal.toLocaleString('pt-BR')} | <strong>Lucro:</strong> R$ ${lucro.toLocaleString('pt-BR')}</p>`;
         }
         
-        // Inicializar
-        renderTable();
-        renderSellersTable();
-        calculateGlobalData();
-        updateChart();
-        updateFinance();
-// Atualizar finanças - soma apenas dos vendedores 1-30
-function updateFinance() {
-    const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
-    const receita = sumVendas * 100;
-    const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
-    const bonus = atingiram * 1200;
-    const custoTotalOperacao = 285200;
-    const custoTotal = custoTotalOperacao + bonus;
-    const lucro = receita - custoTotal;
-    
-    financeResults.innerHTML = `
-        <p><strong>Contratos (Vendas Totais dos Vendedores):</strong> ${sumVendas}</p>
-        <p><strong>Receita:</strong> R$ ${receita.toLocaleString('pt-BR')}</p>
-        <p><strong>Bônus Vendedores:</strong> R$ ${bonus.toLocaleString('pt-BR')} (${atingiram} vendedores atingiram 10% x R$ 1.200)</p>
-        <p><strong>Custo Total da Operação:</strong> R$ ${custoTotalOperacao.toLocaleString('pt-BR')}</p>
-        <p><strong>Custo Total:</strong> R$ ${custoTotal.toLocaleString('pt-BR')}</p>
-        <p><strong>Lucro Líquido:</strong> R$ ${lucro.toLocaleString('pt-BR')} ${lucro >= 0 ? '(Lucro)' : '(Prejuízo)'}</p>
-    `;
-}
+        // Carregar dados automaticamente ao abrir a página
+        carregarDadosDaPlanilha();
+        
+        // Atualizar automaticamente a cada 30 segundos
+        setInterval(() => {
+            financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
+            carregarDadosDaPlanilha();
+        }, 30000);  // 30000 ms = 30 segundos; mude para 60000 se quiser 1 minuto
     </script>
 </body>
 </html>
