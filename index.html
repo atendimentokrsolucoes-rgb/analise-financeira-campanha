@@ -348,11 +348,11 @@ function updateFinance() {
 // Carregar dados automaticamente ao abrir a página
 carregarDadosDaPlanilha();
         
-        // Atualizar automaticamente a cada 30 segundos
+        // Atualizar automaticamente a cada 60 segundos
         setInterval(() => {
             financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
             carregarDadosDaPlanilha();
-        }, 30000);
+        }, 60000);
     </script>
 </body>
 </html>
