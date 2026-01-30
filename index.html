@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Financeira - Campanha Especial</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { color: #4CAF50; text-align: center; }
+        .section { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background: #f2f2f2; }
+        input { width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; }
+        .totals { font-weight: bold; background: #e8f5e8; }
+        .error { color: red; font-size: 12px; }
+        .success { color: green; font-size: 12px; }
+        .seller-section { margin-bottom: 20px; }
+        .seller-header { cursor: pointer; background: #f0f0f0; font-weight: bold; padding: 10px; }
+        .seller-details { display: none; }
+        canvas { max-width: 100%; height: 400px; margin-top: 20px; }
+        .premissas { background: #f9f9f9; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Análise Financeira – Campanha Especial (40 dias úteis)</h1>
+        
+        <div class="section premissas">
+            <h2>Premissas Operacionais</h2>
+            <p><strong>Vendedores:</strong> 30 | <strong>Leads por vendedor/dia:</strong> 70 | <strong>Leads/dia total:</strong> 2.100 | <strong>Dias úteis:</strong> 40 | <strong>Leads totais:</strong> 84.000</p>
+            <p><strong>Meta:</strong> 10% de conversão (8.400 contratos totais). Cada vendedor precisa de 7 contratos por dia (7 contratos * 30 vendedores = 210 contratos por dia, totalizando 8.400 no período).</p>
+        </div>
+        
+        <div class="section">
+            <h2>Custos Fixos (2 Meses) - Detalhados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Detalhes</th>
+                        <th>Valor (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Coordenadores</td>
+                        <td>2 x R$ 15.000 x 2 meses</td>
+                        <td>60.000</td>
+                    </tr>
+                    <tr>
+                        <td>Supervisores</td>
+                        <td>5 x R$ 5.000 x 2 meses</td>
+                        <td>50.000</td>
+                    </tr>
+                    <tr>
+                        <td>Vendedores - Fixo</td>
+                        <td>30 x R$ 1.800 x 2 meses</td>
+                        <td>108.000</td>
+                    </tr>
+                    <tr>
+                        <td>RH / Financeiro / Apoio</td>
+                        <td>-</td>
+                        <td>20.000</td>
+                    </tr>
+                    <tr>
+                        <td>CRM</td>
+                        <td>-</td>
+                        <td>13.000</td>
+                    </tr>
+                    <tr>
+                        <td>APIs WhatsApp</td>
+                        <td>10 ativas + 10 reserva</td>
+                        <td>9.000</td>
+                    </tr>
+                    <tr class="totals">
+                        <td colspan="2"><strong>Total Custos Fixos</strong></td>
+                        <td><strong>260.000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Custos Variáveis - Detalhados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Detalhes</th>
+                        <th>Valor (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Templates WhatsApp</td>
+                        <td>84.000 envios x R$ 0,30</td>
+                        <td>25.200</td>
+                    </tr>
+                    <tr class="totals">
+                        <td colspan="2"><strong>Total Custos Variáveis</strong></td>
+                        <td><strong>25.200</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p><strong>Custo Total da Operação:</strong> R$ 285.200</p>
+        </div>
+        
+        <div class="section">
+            <h2>Tabela de Distribuição e Vendas por Dia (Calculada Automaticamente)</h2>
+            <p>Essa tabela é a soma dos dados da tabela de vendedores abaixo, por dia. Não editável.</p>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Dia</th>
+                        <th>Quantidade Distribuída</th>
+                        <th>Vendas do Dia</th>
+                        <th>Conversão (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Linhas geradas dinamicamente -->
+                </tbody>
+                <tfoot>
+                    <tr class="totals">
+                        <td>Total</td>
+                        <td id="totalDistribuida">0</td>
+                        <td id="totalVendas">0</td>
+                        <td id="totalConversao">0.00%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="section">
+            <h2>Tabela de Vendedores (Editável por Dia)</h2>
+            <div id="sellersContainer">
+                <!-- Vendedores gerados dinamicamente -->
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Gráfico: Distribuição vs. Vendas por Dia</h2>
+            <p>Linha vermelha: Meta diária (210 vendas/dia para 10%). Dados da tabela de distribuição.</p>
+            <canvas id="progressChart"></canvas>
+        </div>
+        
+        <div class="section">
+            <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
+            <p id="financeResults">Carregando...</p>
+        </div>
+    </div>
+    
+    <script>
+        const tableBody = document.querySelector('#dataTable tbody');
+        const sellersContainer = document.getElementById('sellersContainer');
+        const totalDistribuida = document.getElementById('totalDistribuida');
+        const totalVendas = document.getElementById('totalVendas');
+        const totalConversao = document.getElementById('totalConversao');
+        const financeResults = document.getElementById('financeResults');
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        let chart;
+        const days = 40;
+        const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
+        const sellers = Array.from({length: 31}, (_, i) => ({
+            nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })), // Começa zerado
+            totalLeads: 0,
+            totalVendas: 0,
+            totalConversao: 0,
+            atingiuGeral: false
+        }));
+        
+        // Gerar tabela por dia (não editável)
+        function renderTable() {
+            tableBody.innerHTML = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.dia}</td>
+                    <td>${row.distribuida}</td>
+                    <td>${row.vendas}</td>
+                    <td>${row.conversao.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // Gerar tabela de vendedores
+        function renderSellersTable() {
+            sellersContainer.innerHTML = '';
+            sellers.forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSeller(${sellerIndex})">${seller.nome} - Total Leads: ${seller.totalLeads} | Total Vendas: ${seller.totalVendas} | Conversão: ${seller.totalConversao.toFixed(2)}% | Status: <span class="${seller.atingiuGeral ? 'success' : 'error'}">${seller.atingiuGeral ? 'Atingiu Meta Geral' : 'Não Atingiu'}</span></div>
+                    <div class="seller-details" id="seller-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.map((day, dayIndex) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td><input type="number" value="${day.leads}" min="0" onchange="updateSellerDay(${sellerIndex}, ${dayIndex}, 'leads', this.value)"></td>
+                                        <td><input type="number" value="${day.vendas}" min="0" onchange="updateSellerDay(${sellerIndex}, ${dayIndex}, 'vendas', this.value)"></td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                sellersContainer.appendChild(sellerDiv);
+            });
+        }
+        
+        // Toggle para expandir/recolher vendedor
+        function toggleSeller(index) {
+            const details = document.getElementById(`seller-${index}`);
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Atualizar dia de vendedor
+        function updateSellerDay(sellerIndex, dayIndex, field, value) {
+            const newValue = parseFloat(value) || 0;
+            sellers[sellerIndex].days[dayIndex][field] = newValue;
+            sellers[sellerIndex].days[dayIndex].conversao = sellers[sellerIndex].days[dayIndex].leads > 0 ? (sellers[sellerIndex].days[dayIndex].vendas / sellers[sellerIndex].days[dayIndex].leads) * 100 : 0;
+            sellers[sellerIndex].days[dayIndex].atingiu = sellers[sellerIndex].days[dayIndex].vendas >= 7;
+            calculateSellerTotals(sellerIndex);
+            
+            // Se for o Template Global (índice 30), propagar para todos os vendedores 1-30
+            if (sellerIndex === 30) {
+                for (let i = 0; i < 30; i++) {
+                    sellers[i].days[dayIndex][field] = newValue;
+                    sellers[i].days[dayIndex].conversao = sellers[i].days[dayIndex].leads > 0 ? (sellers[i].days[dayIndex].vendas / sellers[i].days[dayIndex].leads) * 100 : 0;
+                    sellers[i].days[dayIndex].atingiu = sellers[i].days[dayIndex].vendas >= 7;
+                    calculateSellerTotals(i);
+                }
+            }
+            
+            renderSellersTable(); // Re-renderizar para refletir mudanças
+            calculateGlobalData();
+            updateChart();
+            updateFinance();
+        }
+        
+        // Calcular totais por vendedor
+        function calculateSellerTotals(sellerIndex) {
+            const seller = sellers[sellerIndex];
+            seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
+            seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
+            seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
+            seller.atingiuGeral = seller.totalConversao >= 10;
+        }
+        
+        // Calcular dados globais (tabela por dia) - soma apenas dos vendedores 1-30
+        function calculateGlobalData() {
+            for (let d = 0; d < days; d++) {
+                data[d].distribuida = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].leads, 0);
+                data[d].vendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].vendas, 0);
+                data[d].conversao = data[d].distribuida > 0 ? (data[d].vendas / data[d].distribuida) * 100 : 0;
+            }
+            const sumDistribuida = data.reduce((sum, row) => sum + row.distribuida, 0);
+            const sumVendas = data.reduce((sum, row) => sum + row.vendas, 0);
+            const avgConversao = sumDistribuida > 0 ? (sumVendas / sumDistribuida) * 100 : 0;
+            
+            totalDistribuida.textContent = sumDistribuida;
+            totalVendas.textContent = sumVendas;
+            totalConversao.textContent = avgConversao.toFixed(2) + '%';
+            
+            renderTable(); // Re-renderizar a tabela de distribuição
+        }
+        
+        // Atualizar gráfico
+        function updateChart() {
+            const labels = data.map(row => `Dia ${row.dia}`);
+            const distribuidaData = data.map(row => row.distribuida);
+            const vendasData = data.map(row => row.vendas);
+            const metaVendas = 210;
+            
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { 
+                            label: 'Distribuída', 
+                            data: distribuidaData, 
+                            backgroundColor: distribuidaData.map(value => value >= 2100 ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)') // Verde se >= 2100, vermelho se < 2100
+                        },
+                        { 
+                            label: 'Vendas', 
+                            data: vendasData, 
+                            backgroundColor: vendasData.map(value => value >= 210 ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)') // Verde se >= 210, vermelho se < 210
+                        },
+                        { label: 'Meta Diária (Vendas)', type: 'line', data: Array(days).fill(metaVendas), borderColor: 'red', fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Dias' } },
+                        y: { 
+                            title: { display: true, text: 'Quantidade' },
+                            min: 0,
+                            max: 2500,
+                            ticks: {
+                                stepSize: 100
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Atualizar finanças - soma apenas dos vendedores 1-30
+        function updateFinance() {
+            const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
+            const receita = sumVendas * 100;
+            const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
+            const bonus = atingiram * 1200;
+            const custoTotal = 285200 + bonus;
+            const lucro = receita - custoTotal;
+            
+            financeResults.innerHTML = `
+                <p><strong>Contratos (Vendas Totais dos Vendedores):</strong> ${sumVendas}</p>
+                <p><strong>Receita:</strong> R$ ${receita.toLocaleString('pt-BR')}</p>
+                <p><strong>Bônus Vendedores:</strong> R$ ${bonus.toLocaleString('pt-BR')} (${atingiram} vendedores atingiram 10% x R$ 1.200)</p>
+                <p><strong>Custo Total:</strong> R$ ${custoTotal.toLocaleString('pt-BR')}</p>
+                <p><strong>Lucro Líquido:</strong> R$ ${lucro.toLocaleString('pt-BR')} ${lucro >= 0 ? '(Lucro)' : '(Prejuízo)'}</p>
+            `;
+        }
+        
+        // Inicializar
+        renderTable();
+        renderSellersTable();
+        calculateGlobalData();
+        updateChart();
+        updateFinance();
+// Atualizar finanças - soma apenas dos vendedores 1-30
+function updateFinance() {
+    const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
+    const receita = sumVendas * 100;
+    const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
+    const bonus = atingiram * 1200;
+    const custoTotalOperacao = 285200;
+    const custoTotal = custoTotalOperacao + bonus;
+    const lucro = receita - custoTotal;
+    
+    financeResults.innerHTML = `
+        <p><strong>Contratos (Vendas Totais dos Vendedores):</strong> ${sumVendas}</p>
+        <p><strong>Receita:</strong> R$ ${receita.toLocaleString('pt-BR')}</p>
+        <p><strong>Bônus Vendedores:</strong> R$ ${bonus.toLocaleString('pt-BR')} (${atingiram} vendedores atingiram 10% x R$ 1.200)</p>
+        <p><strong>Custo Total da Operação:</strong> R$ ${custoTotalOperacao.toLocaleString('pt-BR')}</p>
+        <p><strong>Custo Total:</strong> R$ ${custoTotal.toLocaleString('pt-BR')}</p>
+        <p><strong>Lucro Líquido:</strong> R$ ${lucro.toLocaleString('pt-BR')} ${lucro >= 0 ? '(Lucro)' : '(Prejuízo)'}</p>
+    `;
+}
+    </script>
+</body>
+</html>
