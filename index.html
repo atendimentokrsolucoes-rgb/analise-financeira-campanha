@@ -183,23 +183,22 @@
                 const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
                 const sheetData = await response.json();
                 console.log('Número de linhas no JSON:', sheetData.length);
-                console.log('Primeiro item (linha vazia):', sheetData[0]);
-                console.log('Segundo item (cabeçalho):', sheetData[1]);
-                console.log('Terceiro item (vendedor 1):', sheetData[2]);
+                console.log('Primeiro item (cabeçalho):', sheetData[0]);
+                console.log('Segundo item (vendedor 1):', sheetData[1]);
                 
-                if (sheetData.length < 3) {
-                    console.error('JSON tem menos de 3 linhas. Verifique a planilha.');
+                if (sheetData.length < 2) {
+                    console.error('JSON tem menos de 2 linhas. Verifique a planilha e SheetDB.');
                     return;
                 }
                 
-                // Assumindo linhas 2-31 são vendedores (linha 0 vazia, linha 1 cabeçalho, 2-31 dados) - ajuste para 30 vendedores
-                sheetData.slice(2, 32).forEach((linha, index) => {  // slice(2,32) para pegar 30 vendedores
-                    const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;
+                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 linhas
+                sheetData.slice(1, 31).forEach((linha, index) => {  // slice(1,31) para pegar 30 vendedores
+                    const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;  // Chave vazia para nome
                     sellers[index].nome = vendedorNome;
                     
                     // Processar dias (DIA 1 a DIA 40) - com espaço
                     for (let d = 1; d <= 40; d++) {
-                        const chaveDia = `DIA ${d}`;
+                        const chaveDia = `DIA ${d}`;  // Com espaço
                         const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
                         const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
                         sellers[index].days[d-1].leads = leads;
@@ -339,4 +338,11 @@
         // Carregar dados automaticamente ao abrir a página
         carregarDadosDaPlanilha();
         
-        //
+        // Atualizar automaticamente a cada 30 segundos
+        setInterval(() => {
+            financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
+            carregarDadosDaPlanilha();
+        }, 30000);
+    </script>
+</body>
+</html>
