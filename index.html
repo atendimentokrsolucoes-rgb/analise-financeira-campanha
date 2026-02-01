@@ -346,13 +346,13 @@ function updateFinance() {
 }
 
 // Carregar dados automaticamente ao abrir a página
-carregarDadosDaPlanilha();
+// carregarDadosDaPlanilha();
         
-        // Atualizar automaticamente a cada 60 segundos
-        setInterval(() => {
-            financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
-            carregarDadosDaPlanilha();
-        }, 60000);
+       // Atualizações automáticas desativadas (use o botão "Atualizar Agora" manualmente)
+// setInterval(() => {
+//     financeResults.innerHTML = '<p class="loading">Atualizando dados...</p>';
+//     carregarDadosDaPlanilha();
+// }, 60000);
     </script>
 </body>
 </html>
