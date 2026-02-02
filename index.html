@@ -603,7 +603,7 @@
                 console.error('Erro:', error);
             }
         }
-        // Gerar tabela por dia (liderança)
+                // Gerar tabela por dia (liderança)
         function renderTable() {
             tableBody.innerHTML = '';
             data.forEach(row => {
@@ -618,7 +618,70 @@
             });
         }
         
-                // Gerar tabela de vendedores (equipe - Fevereiro, dias 1-18)
+        // Gerar tabela por dia (equipe)
+        function renderEquipeTable(equipeSellers) {
+            equipeDataTableBody.innerHTML = '';
+            for (let d = 0; d < days; d++) {
+                const distribuida = equipeSellers.reduce((sum, s) => sum + s.days[d].leads, 0);
+                const vendas = equipeSellers.reduce((sum, s) => sum + s.days[d].vendas, 0);
+                const conversao = distribuida > 0 ? (vendas / distribuida) * 100 : 0;
+                const digitados = equipeSellers.reduce((sum, s) => sum + s.days[d].digitados, 0);
+                const preAprovados = equipeSellers.reduce((sum, s) => sum + s.days[d].preAprovados, 0);
+                const poupancaSocial = equipeSellers.reduce((sum, s) => sum + s.days[d].poupancaSocial, 0);
+                const outros = equipeSellers.reduce((sum, s) => sum + s.days[d].outros, 0);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${d+1}</td>
+                    <td>${distribuida}</td>
+                    <td>${vendas}</td>
+                    <td>${conversao.toFixed(2)}%</td>
+                    <td>${digitados}</td>
+                    <td>${preAprovados}</td>
+                    <td>${poupancaSocial}</td>
+                    <td>${outros}</td>
+                `;
+                equipeDataTableBody.appendChild(tr);
+            }
+        }
+        
+        // Gerar tabela de vendedores (liderança - excluindo Template Global)
+        function renderSellersTable() {
+            sellersContainer.innerHTML = '';
+            sellers.slice(0, 32).forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSeller(${sellerIndex})">${seller.nome} - Total Leads: ${seller.totalLeads} | Total Vendas: ${seller.totalVendas} | Conversão: ${seller.totalConversao.toFixed(2)}% | Status: <span class="${seller.atingiuGeral ? 'success' : 'error'}">${seller.atingiuGeral ? 'Atingiu Meta Geral' : 'Não Atingiu'}</span></div>
+                    <div class="seller-details" id="seller-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.map((day) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                sellersContainer.appendChild(sellerDiv);
+            });
+        }
+        
+        // Gerar tabela de vendedores (equipe - Fevereiro, dias 1-18)
         function renderEquipeSellersFevereiro(equipeSellers) {
             equipeSellersFevereiro.innerHTML = '';
             equipeSellers.forEach((seller, sellerIndex) => {
