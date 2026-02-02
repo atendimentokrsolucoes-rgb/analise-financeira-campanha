@@ -208,13 +208,56 @@ function calculateTeamData() {
             teamChart = new Chart(teamCtx, {  // Usando teamChart em vez de new Chart
                 type: 'bar',
                 data: {
-                    labels: Object.keys(teams),
+                    labels: Object.keys(teams).map(team => team.toUpperCase()),  // Nomes em caixa alta
                     datasets: [
-                        { label: 'Vendas Totais', data: Object.values(teams).map(t => t.vendas), backgroundColor: 'blue', barThickness: 50 },
-                        { label: 'Conversão (%)', data: Object.values(teams).map(t => t.conversao), backgroundColor: 'green', barThickness: 50 }
+                        { 
+                            label: 'Clientes Recebidos', 
+                            data: Object.values(teams).map(t => t.leads), 
+                            backgroundColor: 'lightblue',  // Cor que combina com azul
+                            barThickness: 50 
+                        },
+                        { 
+                            label: 'Vendas Totais', 
+                            data: Object.values(teams).map(t => t.vendas), 
+                            backgroundColor: 'blue', 
+                            barThickness: 50 
+                        },
+                        { 
+                            label: 'Conversão (%)', 
+                            data: Object.values(teams).map(t => t.conversao), 
+                            backgroundColor: 'green', 
+                            barThickness: 50 
+                        }
                     ]
                 },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                options: { 
+                    responsive: true, 
+                    scales: { 
+                        y: { beginAtZero: true },
+                        x: { 
+                            ticks: { 
+                                font: { size: 14, weight: 'bold' }  // Nomes de equipe maiores e negrito
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                font: { size: 16, weight: 'bold' }  // Labels maiores e negrito
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 2) {  // Conversão
+                                        return context.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                    }
+                                    return context.label + ': ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
         
