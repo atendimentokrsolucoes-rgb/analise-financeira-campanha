@@ -410,6 +410,24 @@ function calculateTeamData() {
             totalDistribuida.textContent = sumDistribuida;
             totalVendas.textContent = sumVendas;
             totalConversao.textContent = avgConversao.toFixed(2) + '%';
+            
+            // Total Fevereiro (dias 1-18)
+            const sumDistribuida18 = data.slice(0, 18).reduce((sum, row) => sum + row.distribuida, 0);
+            const sumVendas18 = data.slice(0, 18).reduce((sum, row) => sum + row.vendas, 0);
+            const avgConversao18 = sumDistribuida18 > 0 ? (sumVendas18 / sumDistribuida18) * 100 : 0;
+            
+            totalDistribuida18.textContent = sumDistribuida18;
+            totalVendas18.textContent = sumVendas18;
+            totalConversao18.textContent = avgConversao18.toFixed(2) + '%';
+            
+            // Total Março (dias 19-40)
+            const sumDistribuida40 = data.slice(18, 40).reduce((sum, row) => sum + row.distribuida, 0);
+            const sumVendas40 = data.slice(18, 40).reduce((sum, row) => sum + row.vendas, 0);
+            const avgConversao40 = sumDistribuida40 > 0 ? (sumVendas40 / sumDistribuida40) * 100 : 0;
+            
+            totalDistribuida40.textContent = sumDistribuida40;
+            totalVendas40.textContent = sumVendas40;
+            totalConversao40.textContent = avgConversao40.toFixed(2) + '%';
         }
         
         // Atualizar gráfico
