@@ -264,28 +264,33 @@ function calculateTeamData() {
         function updateTeamChart() {
             if (teamChart) teamChart.destroy();  // Adicionado para destruir gráfico anterior
             const teams = calculateTeamData();
+            // Excluir "Outros" do gráfico
+            const filteredTeams = Object.keys(teams).filter(team => team !== 'Outros').reduce((obj, key) => {
+                obj[key] = teams[key];
+                return obj;
+            }, {});
             const teamCtx = document.getElementById('teamChart').getContext('2d');
             
             teamChart = new Chart(teamCtx, {  // Usando teamChart em vez de new Chart
                 type: 'bar',
                 data: {
-                    labels: Object.keys(teams).map(team => team.toUpperCase()),  // Nomes em caixa alta
+                    labels: Object.keys(filteredTeams).map(team => team.toUpperCase()),  // Nomes em caixa alta
                     datasets: [
                         { 
                             label: 'Clientes Recebidos', 
-                            data: Object.values(teams).map(t => t.leads), 
+                            data: Object.values(filteredTeams).map(t => t.leads), 
                             backgroundColor: 'lightblue',  // Cor que combina com azul
                             barThickness: 50 
                         },
                         { 
                             label: 'Vendas Totais', 
-                            data: Object.values(teams).map(t => t.vendas), 
+                            data: Object.values(filteredTeams).map(t => t.vendas), 
                             backgroundColor: 'blue', 
                             barThickness: 50 
                         },
                         { 
                             label: 'Conversão (%)', 
-                            data: Object.values(teams).map(t => t.conversao), 
+                            data: Object.values(filteredTeams).map(t => t.conversao), 
                             backgroundColor: 'green', 
                             barThickness: 50 
                         }
@@ -417,11 +422,11 @@ function calculateTeamData() {
             console.log('Tabela por dia renderizada.');
         }
         
-        // Gerar tabela de vendedores
+        // Gerar tabela de vendedores (excluindo Template Global)
         function renderSellersTable() {
             console.log('Renderizando tabela de vendedores...');
             sellersContainer.innerHTML = '';
-            sellers.forEach((seller, sellerIndex) => {
+            sellers.slice(0, 32).forEach((seller, sellerIndex) => {  // Excluindo Template Global (último item)
                 const sellerDiv = document.createElement('div');
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
