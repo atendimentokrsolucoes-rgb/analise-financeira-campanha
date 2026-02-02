@@ -371,7 +371,10 @@
                 } else {
                     document.getElementById('lideranca-content').style.display = 'none';
                     document.getElementById('equipe-content').style.display = 'block';
-                    carregarDadosDaPlanilhaEquipe(currentSector);
+                    // Detecta se o clique foi na primeira seção (login-buttons) ou segunda (amostragem-buttons)
+                    const clickedButton = event.target;
+                    const isAmostragem = clickedButton.closest('.amostragem-buttons') !== null;
+                    carregarDadosDaPlanilhaEquipe(currentSector, isAmostragem);
                 }
             } else {
                 document.getElementById('login-error').textContent = 'Senha incorreta!';
@@ -492,7 +495,7 @@
             diasConversaoMenos7.textContent = diasConvMenos7;
         }
         
-                // Função para carregar dados da planilha (liderança - aba principal "CONTROLE")
+        // Função para carregar dados da planilha (liderança - aba principal "CONTROLE")
         async function carregarDadosDaPlanilha() {
             try {
                 console.log('Carregando dados da aba CONTROLE (URL base)...');
@@ -545,7 +548,7 @@
         }
         
         // Função para carregar dados da planilha (equipe - filtra da aba "CONTROLE" por nome do vendedor)
-        async function carregarDadosDaPlanilhaEquipe(equipe) {
+        async function carregarDadosDaPlanilhaEquipe(equipe, isAmostragem = false) {
             try {
                 console.log('Carregando dados da equipe:', equipe, '(filtrando da aba CONTROLE)');
                 const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
@@ -594,8 +597,13 @@
                 });
                 
                 renderEquipeTable(equipeSellers);
-                renderEquipeSellersFevereiro(equipeSellers);
-                renderEquipeSellersMarco(equipeSellers);
+                if (isAmostragem) {
+                    renderEquipeSellersFevereiro(equipeSellers);
+                    renderEquipeSellersMarco(equipeSellers);
+                } else {
+                    renderEquipeSellersFevereiroDireto(equipeSellers);
+                    renderEquipeSellersMarcoDireto(equipeSellers);
+                }
                 updateEquipeChartFevereiro(equipeSellers, equipe);
                 updateEquipeChartMarco(equipeSellers, equipe);
                 console.log('Sucesso! Dados da equipe carregados.');
@@ -603,7 +611,8 @@
                 console.error('Erro:', error);
             }
         }
-                // Gerar tabela por dia (liderança)
+        
+        // Gerar tabela por dia (liderança)
         function renderTable() {
             tableBody.innerHTML = '';
             data.forEach(row => {
@@ -640,7 +649,7 @@
                     <td>${poupancaSocial}</td>
                     <td>${outros}</td>
                 `;
-                equipeDataTableBody.appendChild(tr);
+                                equipeDataTableBody.appendChild(tr);
             }
         }
         
@@ -681,7 +690,97 @@
             });
         }
         
-        // Gerar tabela de vendedores (equipe - Fevereiro, dias 1-18)
+        // Gerar tabela de vendedores (equipe direta - Fevereiro, dias 1-18 - sem totais extras)
+        function renderEquipeSellersFevereiroDireto(equipeSellers) {
+            equipeSellersFevereiro.innerHTML = '';
+            equipeSellers.forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                    <div class="seller-details" id="equipe-seller-fevereiro-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                    <th>Digitados</th>
+                                    <th>Pré Aprovados</th>
+                                    <th>Poupança Social</th>
+                                    <th>Outros Motivos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.slice(0, 18).map((day) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                        <td>${day.digitados}</td>
+                                        <td>${day.preAprovados}</td>
+                                        <td>${day.poupancaSocial}</td>
+                                        <td>${day.outros}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                equipeSellersFevereiro.appendChild(sellerDiv);
+            });
+        }
+        
+        // Gerar tabela de vendedores (equipe direta - Março, dias 19-40 - sem totais extras)
+        function renderEquipeSellersMarcoDireto(equipeSellers) {
+            equipeSellersMarco.innerHTML = '';
+            equipeSellers.forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSellerEquipeMarco(${sellerIndex})">${seller.nome} - Total Leads Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Março: ${(seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                    <div class="seller-details" id="equipe-seller-marco-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                    <th>Digitados</th>
+                                    <th>Pré Aprovados</th>
+                                    <th>Poupança Social</th>
+                                    <th>Outros Motivos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.slice(18, 40).map((day) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                        <td>${day.digitados}</td>
+                                        <td>${day.preAprovados}</td>
+                                        <td>${day.poupancaSocial}</td>
+                                        <td>${day.outros}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                equipeSellersMarco.appendChild(sellerDiv);
+            });
+        }
+        
+        // Gerar tabela de vendedores (equipe - Fevereiro, dias 1-18 - com totais extras para amostragem)
         function renderEquipeSellersFevereiro(equipeSellers) {
             equipeSellersFevereiro.innerHTML = '';
             equipeSellers.forEach((seller, sellerIndex) => {
@@ -730,7 +829,7 @@
             });
         }
         
-        // Gerar tabela de vendedores (equipe - Março, dias 19-40)
+        // Gerar tabela de vendedores (equipe - Março, dias 19-40 - com totais extras para amostragem)
         function renderEquipeSellersMarco(equipeSellers) {
             equipeSellersMarco.innerHTML = '';
             equipeSellers.forEach((seller, sellerIndex) => {
@@ -742,51 +841,6 @@
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
                     <div class="seller-header" onclick="toggleSellerEquipeMarco(${sellerIndex})">${seller.nome} - Total Leads Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Março: ${(seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}% | Digitados Março: ${totalDigitadosMar} | Pré Aprovados Março: ${totalPreAprovadosMar} | Poupança Social Março: ${totalPoupancaSocialMar} | Outros Motivos Março: ${totalOutrosMar}</div>
-                    <div class="seller-details" id="equipe-seller-marco-${sellerIndex}">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Dia</th>
-                                    <th>Leads Distribuídos</th>
-                                    <th>Vendas</th>
-                                    <th>Conversão (%)</th>
-                                    <th>Status Meta (7 vendas/dia)</th>
-                                    <th>Digitados</th>
-                                    <th>Pré Aprovados</th>
-                                    <th>Poupança Social</th>
-                                    <th>Outros Motivos</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${seller.days.slice(18, 40).map((day) => `
-                                    <tr>
-                                        <td>${day.dia}</td>
-                                        <td>${day.leads}</td>
-                                        <td>${day.vendas}</td>
-                                        <td>${day.conversao.toFixed(2)}%</td>
-                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
-                                        <td>${day.digitados}</td>
-                                        <td>${day.preAprovados}</td>
-                                        <td>${day.poupancaSocial}</td>
-                                        <td>${day.outros}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                equipeSellersMarco.appendChild(sellerDiv);
-            });
-        }
-        
-        // Gerar tabela de vendedores (equipe - Março, dias 19-40)
-        function renderEquipeSellersMarco(equipeSellers) {
-            equipeSellersMarco.innerHTML = '';
-            equipeSellers.forEach((seller, sellerIndex) => {
-                const sellerDiv = document.createElement('div');
-                sellerDiv.className = 'seller-section';
-                sellerDiv.innerHTML = `
-                    <div class="seller-header" onclick="toggleSellerEquipeMarco(${sellerIndex})">${seller.nome} - Total Leads Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Março: ${(seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
                     <div class="seller-details" id="equipe-seller-marco-${sellerIndex}">
                         <table>
                             <thead>
@@ -872,7 +926,7 @@
             
             totalDistribuida18.textContent = sumDistribuida18;
             totalVendas18.textContent = sumVendas18;
-            totalConversao18.textContent = avgConversao18.toFixed(2) + '%';
+                        totalConversao18.textContent = avgConversao18.toFixed(2) + '%';
             
             const sumDistribuida40 = data.slice(18, 40).reduce((sum, row) => sum + row.distribuida, 0);
             const sumVendas40 = data.slice(18, 40).reduce((sum, row) => sum + row.vendas, 0);
