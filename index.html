@@ -260,17 +260,8 @@
             <div class="section">
                 <h2>Tabela de Distribuição e Vendas por Dia (Equipe)</h2>
                 <table id="equipeDataTable">
-                    <thead>
-                        <tr>
-                            <th>Dia</th>
-                            <th>Quantidade Distribuída</th>
-                            <th>Vendas do Dia</th>
-                            <th>Conversão (%)</th>
-                            <th>Digitados</th>
-                            <th>Pré Aprovados</th>
-                            <th>Poupança Social</th>
-                            <th>Outros Motivos</th>
-                        </tr>
+                    <thead id="equipeTableHead">
+                        <!-- Header gerado dinamicamente -->
                     </thead>
                     <tbody>
                         <!-- Linhas geradas dinamicamente -->
@@ -310,6 +301,7 @@
         const tableBody = document.querySelector('#dataTable tbody');
         const sellersContainer = document.getElementById('sellersContainer');
         const equipeDataTableBody = document.querySelector('#equipeDataTable tbody');
+        const equipeTableHead = document.getElementById('equipeTableHead');
         const equipeSellersFevereiro = document.getElementById('equipeSellersFevereiro');
         const equipeSellersMarco = document.getElementById('equipeSellersMarco');
         const totalDistribuida = document.getElementById('totalDistribuida');
@@ -337,10 +329,10 @@
         const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
         const sellers = Array.from({length: 33}, (_, i) => ({
             nome: i < 32 ? `Vendedor ${i+1}` : 'Template Global',
-            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
+                        days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
             totalLeads: 0,
             totalVendas: 0,
-			            totalConversao: 0,
+            totalConversao: 0,
             atingiuGeral: false
         }));
         
@@ -596,7 +588,7 @@
                     }
                 });
                 
-                renderEquipeTable(equipeSellers);
+                renderEquipeTable(equipeSellers, isAmostragem);
                 if (isAmostragem) {
                     renderEquipeSellersFevereiro(equipeSellers);
                     renderEquipeSellersMarco(equipeSellers);
@@ -627,9 +619,22 @@
             });
         }
         
-        // Gerar tabela por dia (equipe)
-        function renderEquipeTable(equipeSellers) {
+        // Gerar tabela por dia (equipe) - condicional para colunas extras apenas na amostragem
+        function renderEquipeTable(equipeSellers, isAmostragem = false) {
+            equipeTableHead.innerHTML = '';
             equipeDataTableBody.innerHTML = '';
+            
+            // Header dinâmico
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `
+                <th>Dia</th>
+                <th>Quantidade Distribuída</th>
+                <th>Vendas do Dia</th>
+                <th>Conversão (%)</th>
+                ${isAmostragem ? '<th>Digitados</th><th>Pré Aprovados</th><th>Poupança Social</th><th>Outros Motivos</th>' : ''}
+            `;
+            equipeTableHead.appendChild(headerRow);
+            
             for (let d = 0; d < days; d++) {
                 const distribuida = equipeSellers.reduce((sum, s) => sum + s.days[d].leads, 0);
                 const vendas = equipeSellers.reduce((sum, s) => sum + s.days[d].vendas, 0);
@@ -644,10 +649,7 @@
                     <td>${distribuida}</td>
                     <td>${vendas}</td>
                     <td>${conversao.toFixed(2)}%</td>
-                    <td>${digitados}</td>
-                    <td>${preAprovados}</td>
-                    <td>${poupancaSocial}</td>
-                    <td>${outros}</td>
+                    ${isAmostragem ? `<td>${digitados}</td><td>${preAprovados}</td><td>${poupancaSocial}</td><td>${outros}</td>` : ''}
                 `;
                 equipeDataTableBody.appendChild(tr);
             }
@@ -693,13 +695,13 @@
         // Gerar tabela de vendedores (equipe direta - Fevereiro, dias 1-18 - sem totais extras)
         function renderEquipeSellersFevereiroDireto(equipeSellers) {
             equipeSellersFevereiro.innerHTML = '';
-            equipeSellers.forEach((seller, sellerIndex) => {
+                        equipeSellers.forEach((seller, sellerIndex) => {
                 const sellerDiv = document.createElement('div');
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
                     <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
                     <div class="seller-details" id="equipe-seller-fevereiro-${sellerIndex}">
-					                        <table>
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Dia</th>
@@ -965,7 +967,7 @@
                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
-				equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.outros, 0), 0)
             ] : [
