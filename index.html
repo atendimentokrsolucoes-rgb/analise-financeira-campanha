@@ -492,10 +492,10 @@
             diasConversaoMenos7.textContent = diasConvMenos7;
         }
         
-        // Função para carregar dados da planilha (liderança - aba "lideranca")
+        // Função para carregar dados da planilha (liderança - aba principal "CONTROLE")
         async function carregarDadosDaPlanilha() {
             try {
-                console.log('Carregando dados da aba lideranca...');
+                console.log('Carregando dados da aba CONTROLE (URL base)...');
                 const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje/tab/lideranca');
                 const sheetData = await response.json();
                 console.log('Número de linhas no JSON:', sheetData.length);
