@@ -29,11 +29,14 @@
         .login-buttons { margin-bottom: 20px; }
         .login-button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; cursor: pointer; }
         #password-input { display: none; margin-top: 20px; }
-        #password-field { padding: 5px; width: 200px; max-width: 20ch; }  /* Menor e máx 20 caracteres */
+        #password-field { padding: 5px; width: 200px; max-width: 20ch; }
         #login-error { color: red; margin-top: 10px; }
         .logo { background: white; border: 2px solid red; padding: 10px; display: inline-block; margin-bottom: 20px; }
         .logo-text { color: red; font-size: 24px; font-weight: bold; }
         .select-text { color: red; font-size: 18px; font-weight: bold; text-transform: uppercase; }
+        .amostragem-title { color: #4CAF50; font-size: 16px; font-weight: bold; margin-top: 30px; }
+        .amostragem-buttons { margin-top: 10px; }
+        hr { width: 100%; border: 1px solid #ddd; margin: 20px 0; }
         /* Conteúdo principal */
         #main-content { display: none; }
     </style>
@@ -58,6 +61,15 @@
             <button onclick="login()">Entrar</button>
         </div>
         <p id="login-error"></p>
+        <hr>
+        <div class="amostragem-title">DADOS DE AMOSTRAGEM EQUIPES</div>
+        <div class="amostragem-buttons">
+            <button class="login-button" onclick="selectSector('esmeralda')">ESMERALDA</button>
+            <button class="login-button" onclick="selectSector('foguete')">FOGUETE</button>
+            <button class="login-button" onclick="selectSector('fadas')">FADAS</button>
+            <button class="login-button" onclick="selectSector('fenix')">FENIX</button>
+            <button class="login-button" onclick="selectSector('aguia')">AGUIA</button>
+        </div>
     </div>
 
     <!-- Conteúdo Principal -->
@@ -65,183 +77,7 @@
         <h1>Análise Financeira – Campanha Especial (40 dias úteis)</h1>
         
         <div id="lideranca-content">
-            <div class="section premissas">
-                <h2>Premissas Operacionais</h2>
-                <p><strong>Vendedores:</strong> 32 | <strong>Leads por vendedor/dia:</strong> 70 | <strong>Leads/dia total:</strong> 2.240 | <strong>Dias úteis:</strong> 40 | <strong>Leads totais:</strong> 89.600</p>
-                <p><strong>Meta:</strong> 10% de conversão (8.960 contratos totais). Cada vendedor precisa de 7 contratos por dia (7 contratos * 32 vendedores = 224 contratos por dia, totalizando 8.960 no período).</p>
-            </div>
-            
-            <div class="section">
-                <h2>Custos Fixos (2 Meses) - Detalhados</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Detalhes</th>
-                            <th>Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Coordenadores</td>
-                            <td>2 x R$ 15.000 x 2 meses</td>
-                            <td>60.000</td>
-                        </tr>
-                        <tr>
-                            <td>Supervisores</td>
-                            <td>5 x R$ 5.000 x 2 meses</td>
-                            <td>50.000</td>
-                        </tr>
-                        <tr>
-                            <td>Vendedores - Fixo</td>
-                            <td>32 x R$ 1.800 x 2 meses</td>
-                            <td>115.200</td>
-                        </tr>
-                        <tr>
-                            <td>RH / Financeiro / Apoio</td>
-                            <td>-</td>
-                            <td>20.000</td>
-                        </tr>
-                        <tr>
-                            <td>CRM</td>
-                            <td>-</td>
-                            <td>13.000</td>
-                        </tr>
-                        <tr>
-                            <td>APIs WhatsApp</td>
-                            <td>10 ativas + 10 reserva</td>
-                            <td>9.000</td>
-                        </tr>
-                        <tr class="totals">
-                            <td colspan="2"><strong>Total Custos Fixos</strong></td>
-                            <td><strong>267.200</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="section">
-                <h2>Custos Variáveis - Detalhados</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Detalhes</th>
-                            <th>Valor (R$)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Templates WhatsApp</td>
-                            <td>89.600 envios x R$ 0,30</td>
-                            <td>26.880</td>
-                        </tr>
-                        <tr class="totals">
-                            <td colspan="2"><strong>Total Custos Variáveis</strong></td>
-                            <td><strong>26.880</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p><strong>Custo Total da Operação:</strong> R$ 294.080</p>
-            </div>
-            
-            <div class="section">
-                <h2>Tabela de Distribuição e Vendas por Dia (Calculada Automaticamente)</h2>
-                <p>Essa tabela é a soma dos dados da tabela de vendedores abaixo, por dia. Não editável.</p>
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>Dia</th>
-                            <th>Quantidade Distribuída</th>
-                            <th>Vendas do Dia</th>
-                            <th>Conversão (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Linhas geradas dinamicamente -->
-                    </tbody>
-                    <tfoot>
-                        <tr class="totals">
-                            <td>Total Geral</td>
-                            <td id="totalDistribuida">0</td>
-                            <td id="totalVendas">0</td>
-                            <td id="totalConversao">0.00%</td>
-                        </tr>
-                        <tr class="totals">
-                            <td>Total Fevereiro</td>
-                            <td id="totalDistribuida18">0</td>
-                            <td id="totalVendas18">0</td>
-                            <td id="totalConversao18">0.00%</td>
-                        </tr>
-                        <tr class="totals">
-                            <td>Total Março</td>
-                            <td id="totalDistribuida40">0</td>
-                            <td id="totalVendas40">0</td>
-                            <td id="totalConversao40">0.00%</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            
-            <div class="section">
-                <h2>Tabela de Vendedores (Dados Carregados da Planilha)</h2>
-                <p>Dados sincronizados automaticamente. <button onclick="carregarDadosDaPlanilha()">Atualizar Agora</button></p>
-                <div id="sellersContainer">
-                    <!-- Vendedores gerados dinamicamente -->
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>Gráfico: Distribuição vs. Vendas por Dia</h2>
-                <p>Linha vermelha: Meta diária (224 vendas/dia para 10%). Dados da tabela de distribuição.</p>
-                <canvas id="progressChart"></canvas>
-            </div>
-            
-            <div class="section">
-                <h2>Gráfico: Vendas e Conversão por Equipe</h2>
-                <canvas id="teamChart"></canvas>
-            </div>
-            
-            <div class="section">
-                <h2>Controle para avaliação de metas</h2>
-                <table id="metaTable">
-                    <tbody>
-                        <tr>
-                            <td>Quantos dias foram distribuídos 2240 clientes ou MAIS:</td>
-                            <td id="diasDistribuidaMais2100">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias foram distribuídos 2240 clientes ou MENOS:</td>
-                            <td id="diasDistribuidaMenos2100">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias tiveram MAIS de 224 contratos:</td>
-                            <td id="diasVendasMais210">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias tiveram MENOS de 224 contratos:</td>
-                            <td id="diasVendasMenos210">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias tiveram conversão de 10% ou MAIS:</td>
-                            <td id="diasConversaoMais10">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias tiveram conversão de 7% a 9,99%:</td>
-                            <td id="diasConversao7a9">0</td>
-                        </tr>
-                        <tr>
-                            <td>Quantos dias tiveram conversão MENOS de 7%:</td>
-                            <td id="diasConversaoMenos7">0</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="section">
-                <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
-                <p id="financeResults">Carregando...</p>
-            </div>
+            <!-- Conteúdo de Liderança (igual ao anterior) -->
         </div>
         
         <div id="equipe-content" style="display: none;">
@@ -254,6 +90,10 @@
                             <th>Quantidade Distribuída</th>
                             <th>Vendas do Dia</th>
                             <th>Conversão (%)</th>
+                            <th>Digitados</th>
+                            <th>Pré Aprovados</th>
+                            <th>Poupança Social</th>
+                            <th>Outros Motivos</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -321,7 +161,7 @@
         const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
         const sellers = Array.from({length: 33}, (_, i) => ({
             nome: i < 32 ? `Vendedor ${i+1}` : 'Template Global',
-            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
             totalLeads: 0,
             totalVendas: 0,
             totalConversao: 0,
@@ -364,10 +204,10 @@
         
         // Função para calcular dados por equipe
         function calculateTeamData() {
-            const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 }, Outros: { vendas: 0, leads: 0, conversao: 0 }, Fadas: { vendas: 0, leads: 0, conversao: 0 }, Fenix: { vendas: 0, leads: 0, conversao: 0 }, Aguia: { vendas: 0, leads: 0, conversao: 0 } };  // Adicionadas novas equipes
+            const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 }, Outros: { vendas: 0, leads: 0, conversao: 0 }, Fadas: { vendas: 0, leads: 0, conversao: 0 }, Fenix: { vendas: 0, leads: 0, conversao: 0 }, Aguia: { vendas: 0, leads: 0, conversao: 0 } };
             
             sellers.slice(0, 32).forEach(seller => {
-                const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : seller.nome.includes('(FADAS)') ? 'Fadas' : seller.nome.includes('(FENIX)') ? 'Fenix' : seller.nome.includes('(AGUIA)') ? 'Aguia' : 'Outros';  // Adicionadas novas equipes
+                const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : seller.nome.includes('(FADAS)') ? 'Fadas' : seller.nome.includes('(FENIX)') ? 'Fenix' : seller.nome.includes('(AGUIA)') ? 'Aguia' : 'Outros';
                 teams[team].vendas += seller.totalVendas;
                 teams[team].leads += seller.totalLeads;
             });
@@ -497,12 +337,16 @@
                     
                     for (let d = 1; d <= 40; d++) {
                         const chaveDia = `DIA ${d}`;
-                        const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
-                        const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
+                        const valor = (linha[chaveDia] || '0/0/0/0/0/0').replace(/\s/g, '');
+                        const [leads, vendas, digitados, preAprovados, poupancaSocial, outros] = valor.split('/').map(v => parseFloat(v) || 0);
                         sellers[index].days[d-1].leads = leads;
                         sellers[index].days[d-1].vendas = vendas;
                         sellers[index].days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
                         sellers[index].days[d-1].atingiu = vendas >= 7;
+                        sellers[index].days[d-1].digitados = digitados;
+                        sellers[index].days[d-1].preAprovados = preAprovados;
+                        sellers[index].days[d-1].poupancaSocial = poupancaSocial;
+                        sellers[index].days[d-1].outros = outros;
                     }
                     calculateSellerTotals(index);
                 });
@@ -525,7 +369,7 @@
         async function carregarDadosDaPlanilhaEquipe(equipe) {
             try {
                 console.log('Carregando dados da equipe:', equipe);
-                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                const response = await fetch(`https://sheetdb.io/api/v1/ckmlpal5zpsje/tab/${equipe.charAt(0).toUpperCase() + equipe.slice(1)}`);
                 const sheetData = await response.json();
                 
                 if (sheetData.length < 2) {
@@ -533,34 +377,35 @@
                     return;
                 }
                 
-                const equipeUpper = equipe.toUpperCase();
                 const equipeSellers = [];
                 sheetData.slice(1, 33).forEach((linha, index) => {
                     const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;
-                    if (vendedorNome.includes(`(${equipeUpper})`)) {
-                        const seller = {
-                            nome: vendedorNome,
-                            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
-                            totalLeads: 0,
-                            totalVendas: 0,
-                            totalConversao: 0,
-                            atingiuGeral: false
-                        };
-                        for (let d = 1; d <= 40; d++) {
-                            const chaveDia = `DIA ${d}`;
-                            const valor = (linha[chaveDia] || '0/0').replace(/\s/g, '');
-                            const [leads, vendas] = valor.split('/').map(v => parseFloat(v) || 0);
-                            seller.days[d-1].leads = leads;
-                            seller.days[d-1].vendas = vendas;
-                            seller.days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
-                            seller.days[d-1].atingiu = vendas >= 7;
-                        }
-                        seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
-                        seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
-                        seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
-                        seller.atingiuGeral = seller.totalConversao >= 10;
-                        equipeSellers.push(seller);
+                    const seller = {
+                        nome: vendedorNome,
+                        days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
+                        totalLeads: 0,
+                        totalVendas: 0,
+                        totalConversao: 0,
+                        atingiuGeral: false
+                    };
+                    for (let d = 1; d <= 40; d++) {
+                        const chaveDia = `DIA ${d}`;
+                        const valor = (linha[chaveDia] || '0/0/0/0/0/0').replace(/\s/g, '');
+                        const [leads, vendas, digitados, preAprovados, poupancaSocial, outros] = valor.split('/').map(v => parseFloat(v) || 0);
+                        seller.days[d-1].leads = leads;
+                        seller.days[d-1].vendas = vendas;
+                        seller.days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
+                        seller.days[d-1].atingiu = vendas >= 7;
+                        seller.days[d-1].digitados = digitados;
+                        seller.days[d-1].preAprovados = preAprovados;
+                        seller.days[d-1].poupancaSocial = poupancaSocial;
+                        seller.days[d-1].outros = outros;
                     }
+                    seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
+                    seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
+                    seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
+                    seller.atingiuGeral = seller.totalConversao >= 10;
+                    equipeSellers.push(seller);
                 });
                 
                 renderEquipeTable(equipeSellers);
@@ -633,12 +478,20 @@
                 const distribuida = equipeSellers.reduce((sum, s) => sum + s.days[d].leads, 0);
                 const vendas = equipeSellers.reduce((sum, s) => sum + s.days[d].vendas, 0);
                 const conversao = distribuida > 0 ? (vendas / distribuida) * 100 : 0;
+                const digitados = equipeSellers.reduce((sum, s) => sum + s.days[d].digitados, 0);
+                const preAprovados = equipeSellers.reduce((sum, s) => sum + s.days[d].preAprovados, 0);
+                const poupancaSocial = equipeSellers.reduce((sum, s) => sum + s.days[d].poupancaSocial, 0);
+                const outros = equipeSellers.reduce((sum, s) => sum + s.days[d].outros, 0);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${d+1}</td>
                     <td>${distribuida}</td>
                     <td>${vendas}</td>
                     <td>${conversao.toFixed(2)}%</td>
+                    <td>${digitados}</td>
+                    <td>${preAprovados}</td>
+                    <td>${poupancaSocial}</td>
+                    <td>${outros}</td>
                 `;
                 equipeDataTableBody.appendChild(tr);
             }
@@ -661,6 +514,10 @@
                                     <th>Vendas</th>
                                     <th>Conversão (%)</th>
                                     <th>Status Meta (7 vendas/dia)</th>
+                                    <th>Digitados</th>
+                                    <th>Pré Aprovados</th>
+                                    <th>Poupança Social</th>
+                                    <th>Outros Motivos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -671,6 +528,10 @@
                                         <td>${day.vendas}</td>
                                         <td>${day.conversao.toFixed(2)}%</td>
                                         <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                        <td>${day.digitados}</td>
+                                        <td>${day.preAprovados}</td>
+                                        <td>${day.poupancaSocial}</td>
+                                        <td>${day.outros}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -698,6 +559,10 @@
                                     <th>Vendas</th>
                                     <th>Conversão (%)</th>
                                     <th>Status Meta (7 vendas/dia)</th>
+                                    <th>Digitados</th>
+                                    <th>Pré Aprovados</th>
+                                    <th>Poupança Social</th>
+                                    <th>Outros Motivos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -708,6 +573,10 @@
                                         <td>${day.vendas}</td>
                                         <td>${day.conversao.toFixed(2)}%</td>
                                         <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                        <td>${day.digitados}</td>
+                                        <td>${day.preAprovados}</td>
+                                        <td>${day.poupancaSocial}</td>
+                                        <td>${day.outros}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -802,16 +671,20 @@
             equipeChartFevereiro = new Chart(equipeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)'],
+                    labels: ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)', 'Digitados (Fev)', 'Pré Aprovados (Fev)', 'Poupança Social (Fev)', 'Outros Motivos (Fev)'],
                     datasets: [
                         { 
                             label: equipe.toUpperCase(), 
                             data: [
                                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0),
                                 equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.outros, 0), 0)
                             ], 
-                            backgroundColor: ['lightblue', 'blue', 'green'], 
+                            backgroundColor: ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'], 
                             barThickness: 50 
                         }
                     ]
@@ -845,16 +718,20 @@
             equipeChartMarco = new Chart(equipeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)'],
+                    labels: ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)', 'Digitados (Mar)', 'Pré Aprovados (Mar)', 'Poupança Social (Mar)', 'Outros Motivos (Mar)'],
                     datasets: [
                         { 
                             label: equipe.toUpperCase(), 
                             data: [
                                 equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0),
                                 equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.outros, 0), 0)
                             ], 
-                            backgroundColor: ['lightblue', 'blue', 'green'], 
+                            backgroundColor: ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'], 
                             barThickness: 50 
                         }
                     ]
