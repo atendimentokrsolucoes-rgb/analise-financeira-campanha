@@ -492,11 +492,14 @@
             diasConversaoMenos7.textContent = diasConvMenos7;
         }
         
-        // Função para carregar dados da planilha (liderança - aba principal "CONTROLE")
+                // Função para carregar dados da planilha (liderança - aba principal "CONTROLE")
         async function carregarDadosDaPlanilha() {
             try {
                 console.log('Carregando dados da aba CONTROLE (URL base)...');
-                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje/tab/lideranca');
+                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+                }
                 const sheetData = await response.json();
                 console.log('Número de linhas no JSON:', sheetData.length);
                 console.log('Primeiro item (cabeçalho):', sheetData[0]);
@@ -537,15 +540,18 @@
                 console.log('Sucesso! Tabelas atualizadas.');
             } catch (error) {
                 console.error('Erro:', error);
-                financeResults.innerHTML = '<p class="error">Erro ao carregar dados.</p>';
+                financeResults.innerHTML = '<p class="error">Erro ao carregar dados. Verifique a planilha e SheetDB.</p>';
             }
         }
         
-        // Função para carregar dados da planilha (equipe - aba específica)
+        // Função para carregar dados da planilha (equipe - filtra da aba "CONTROLE" por nome do vendedor)
         async function carregarDadosDaPlanilhaEquipe(equipe) {
             try {
-                console.log('Carregando dados da equipe:', equipe);
-                const response = await fetch(`https://sheetdb.io/api/v1/ckmlpal5zpsje/tab/${equipe.charAt(0).toUpperCase() + equipe.slice(1)}`);
+                console.log('Carregando dados da equipe:', equipe, '(filtrando da aba CONTROLE)');
+                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+                }
                 const sheetData = await response.json();
                 
                 if (sheetData.length < 2) {
@@ -553,35 +559,38 @@
                     return;
                 }
                 
+                const equipeUpper = equipe.toUpperCase();
                 const equipeSellers = [];
                 sheetData.slice(1, 33).forEach((linha, index) => {
                     const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;
-                    const seller = {
-                        nome: vendedorNome,
-                        days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
-                        totalLeads: 0,
-                        totalVendas: 0,
-                        totalConversao: 0,
-                        atingiuGeral: false
-                    };
-                    for (let d = 1; d <= 40; d++) {
-                        const chaveDia = `DIA ${d}`;
-                        const valor = (linha[chaveDia] || '0/0/0/0/0/0').replace(/\s/g, '');
-                        const [leads, vendas, digitados, preAprovados, poupancaSocial, outros] = valor.split('/').map(v => parseFloat(v) || 0);
-                        seller.days[d-1].leads = leads;
-                        seller.days[d-1].vendas = vendas;
-                        seller.days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
-                        seller.days[d-1].atingiu = vendas >= 7;
-                        seller.days[d-1].digitados = digitados;
-                        seller.days[d-1].preAprovados = preAprovados;
-                        seller.days[d-1].poupancaSocial = poupancaSocial;
-                        seller.days[d-1].outros = outros;
+                    if (vendedorNome.includes(`(${equipeUpper})`)) {
+                        const seller = {
+                            nome: vendedorNome,
+                            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
+                            totalLeads: 0,
+                            totalVendas: 0,
+                            totalConversao: 0,
+                            atingiuGeral: false
+                        };
+                        for (let d = 1; d <= 40; d++) {
+                            const chaveDia = `DIA ${d}`;
+                            const valor = (linha[chaveDia] || '0/0/0/0/0/0').replace(/\s/g, '');
+                            const [leads, vendas, digitados, preAprovados, poupancaSocial, outros] = valor.split('/').map(v => parseFloat(v) || 0);
+                            seller.days[d-1].leads = leads;
+                            seller.days[d-1].vendas = vendas;
+                            seller.days[d-1].conversao = leads > 0 ? (vendas / leads) * 100 : 0;
+                            seller.days[d-1].atingiu = vendas >= 7;
+                            seller.days[d-1].digitados = digitados;
+                            seller.days[d-1].preAprovados = preAprovados;
+                            seller.days[d-1].poupancaSocial = poupancaSocial;
+                            seller.days[d-1].outros = outros;
+                        }
+                        seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
+                        seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
+                        seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
+                        seller.atingiuGeral = seller.totalConversao >= 10;
+                        equipeSellers.push(seller);
                     }
-                    seller.totalLeads = seller.days.reduce((sum, d) => sum + d.leads, 0);
-                    seller.totalVendas = seller.days.reduce((sum, d) => sum + d.vendas, 0);
-                    seller.totalConversao = seller.totalLeads > 0 ? (seller.totalVendas / seller.totalLeads) * 100 : 0;
-                    seller.atingiuGeral = seller.totalConversao >= 10;
-                    equipeSellers.push(seller);
                 });
                 
                 renderEquipeTable(equipeSellers);
@@ -594,7 +603,6 @@
                 console.error('Erro:', error);
             }
         }
-        
         // Gerar tabela por dia (liderança)
         function renderTable() {
             tableBody.innerHTML = '';
