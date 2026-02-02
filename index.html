@@ -154,30 +154,58 @@
             <canvas id="teamChart"></canvas>
         </div>
         
-        <script>
-        // Função para calcular dados por equipe (adicione no final do script, antes de carregarDadosDaPlanilha)
-        function calculateTeamData() {
-            const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 } };
-            
-            sellers.slice(0, 30).forEach(seller => {
-                const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : 'Outros';
-                teams[team].vendas += seller.totalVendas;
-                teams[team].leads += seller.totalLeads;
-            });
-            
-            Object.keys(teams).forEach(team => {
-                teams[team].conversao = teams[team].leads > 0 ? (teams[team].vendas / teams[team].leads) * 100 : 0;
-            });
-            
-            return teams;
-        }
+		<div class="section">
+            <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
+            <p id="financeResults">Carregando...</p>
+        </div>
+    </div>
+	
+	<script>
+        const tableBody = document.querySelector('#dataTable tbody');
+        const sellersContainer = document.getElementById('sellersContainer');
+        const totalDistribuida = document.getElementById('totalDistribuida');
+        const totalVendas = document.getElementById('totalVendas');
+        const totalConversao = document.getElementById('totalConversao');
+        const financeResults = document.getElementById('financeResults');
+        const ctx = document.getElementById('progressChart').getContext('2d');
         
-        // Função para atualizar gráfico de equipes (adicione no final do script, antes de carregarDadosDaPlanilha)
+        let chart;
+        let teamChart;  // Adicionado para o gráfico de equipes
+        const days = 40;
+        const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
+        const sellers = Array.from({length: 31}, (_, i) => ({
+            nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
+            totalLeads: 0,
+            totalVendas: 0,
+            totalConversao: 0,
+            atingiuGeral: false
+        }));
+		
+        // Função para calcular dados por equipe
+function calculateTeamData() {
+    const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 }, Outros: { vendas: 0, leads: 0, conversao: 0 } };  // Adicionado Outros
+    
+    sellers.slice(0, 30).forEach(seller => {
+        const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : 'Outros';  // Agrupa em Outros
+        teams[team].vendas += seller.totalVendas;
+        teams[team].leads += seller.totalLeads;
+    });
+    
+    Object.keys(teams).forEach(team => {
+        teams[team].conversao = teams[team].leads > 0 ? (teams[team].vendas / teams[team].leads) * 100 : 0;
+    });
+    
+    return teams;
+}
+        
+        // Função para atualizar gráfico de equipes
         function updateTeamChart() {
+            if (teamChart) teamChart.destroy();  // Adicionado para destruir gráfico anterior
             const teams = calculateTeamData();
             const teamCtx = document.getElementById('teamChart').getContext('2d');
             
-            new Chart(teamCtx, {
+            teamChart = new Chart(teamCtx, {  // Usando teamChart em vez de new Chart
                 type: 'bar',
                 data: {
                     labels: Object.keys(teams),
@@ -189,33 +217,6 @@
                 options: { responsive: true, scales: { y: { beginAtZero: true } } }
             });
         }
-        </script>
-        <div class="section">
-            <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
-            <p id="financeResults">Carregando...</p>
-        </div>
-    </div>
-    
-    <script>
-        const tableBody = document.querySelector('#dataTable tbody');
-        const sellersContainer = document.getElementById('sellersContainer');
-        const totalDistribuida = document.getElementById('totalDistribuida');
-        const totalVendas = document.getElementById('totalVendas');
-        const totalConversao = document.getElementById('totalConversao');
-        const financeResults = document.getElementById('financeResults');
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        
-        let chart;
-        const days = 40;
-        const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
-        const sellers = Array.from({length: 31}, (_, i) => ({
-            nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
-            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
-            totalLeads: 0,
-            totalVendas: 0,
-            totalConversao: 0,
-            atingiuGeral: false
-        }));
         
         // Função para carregar dados da planilha via SheetDB
         async function carregarDadosDaPlanilha() {
@@ -254,6 +255,7 @@
                 renderTable();
                 renderSellersTable();
                 updateChart();
+                updateTeamChart();  // Adicionado para atualizar o gráfico de equipes
                 updateFinance();
                 console.log('Sucesso! Tabelas atualizadas.');
             } catch (error) {
