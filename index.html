@@ -29,8 +29,11 @@
         .login-buttons { margin-bottom: 20px; }
         .login-button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; cursor: pointer; }
         #password-input { display: none; margin-top: 20px; }
-        #password-field { padding: 5px; }
+        #password-field { padding: 5px; width: 200px; max-width: 20ch; }  /* Menor e máx 20 caracteres */
         #login-error { color: red; margin-top: 10px; }
+        .logo { background: white; border: 2px solid red; padding: 10px; display: inline-block; margin-bottom: 20px; }
+        .logo-text { color: red; font-size: 24px; font-weight: bold; }
+        .select-text { color: red; font-size: 18px; font-weight: bold; text-transform: uppercase; }
         /* Conteúdo principal */
         #main-content { display: none; }
     </style>
@@ -38,7 +41,10 @@
 <body>
     <!-- Tela de Login -->
     <div id="login">
-        <h1>Selecione o Setor</h1>
+        <div class="logo">
+            <div class="logo-text">KR PROMOTORA</div>
+        </div>
+        <div class="select-text">Selecione o Setor</div>
         <div class="login-buttons">
             <button class="login-button" onclick="selectSector('lideranca')">LIDERANÇA</button>
             <button class="login-button" onclick="selectSector('esmeralda')">ESMERALDA</button>
@@ -48,7 +54,7 @@
             <button class="login-button" onclick="selectSector('aguia')">AGUIA</button>
         </div>
         <div id="password-input">
-            <input type="password" id="password-field" placeholder="Digite a senha">
+            <input type="password" id="password-field" placeholder="Digite a senha" maxlength="20">
             <button onclick="login()">Entrar</button>
         </div>
         <p id="login-error"></p>
@@ -257,26 +263,39 @@
             </div>
             
             <div class="section">
-                <h2>Tabela de Vendedores (Equipe)</h2>
-                <div id="equipeSellersContainer">
+                <h2>Tabela de Vendedores (Fevereiro)</h2>
+                <div id="equipeSellersFevereiro">
                     <!-- Vendedores gerados dinamicamente -->
                 </div>
             </div>
             
             <div class="section">
-                <h2>Gráfico: Vendas e Conversão da Equipe</h2>
-                <canvas id="equipeTeamChart"></canvas>
+                <h2>Gráfico: Vendas e Conversão da Equipe (Fevereiro)</h2>
+                <canvas id="equipeTeamChartFevereiro"></canvas>
+            </div>
+            
+            <div class="section">
+                <h2>Tabela de Vendedores (Março)</h2>
+                <div id="equipeSellersMarco">
+                    <!-- Vendedores gerados dinamicamente -->
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Gráfico: Vendas e Conversão da Equipe (Março)</h2>
+                <canvas id="equipeTeamChartMarco"></canvas>
             </div>
         </div>
     </div>
 	
 	<script>
         let currentSector = '';
-        let equipeChart;
+        let equipeChartFevereiro, equipeChartMarco;
         const tableBody = document.querySelector('#dataTable tbody');
         const sellersContainer = document.getElementById('sellersContainer');
         const equipeDataTableBody = document.querySelector('#equipeDataTable tbody');
-        const equipeSellersContainer = document.getElementById('equipeSellersContainer');
+        const equipeSellersFevereiro = document.getElementById('equipeSellersFevereiro');
+        const equipeSellersMarco = document.getElementById('equipeSellersMarco');
         const totalDistribuida = document.getElementById('totalDistribuida');
         const totalVendas = document.getElementById('totalVendas');
         const totalConversao = document.getElementById('totalConversao');
@@ -360,7 +379,7 @@
             return teams;
         }
         
-        // Função para atualizar gráfico de equipes (excluindo Outros)
+        // Função para atualizar gráfico de equipes (liderança - excluindo Outros)
         function updateTeamChart() {
             if (teamChart) teamChart.destroy();
             const teams = calculateTeamData();
@@ -545,8 +564,10 @@
                 });
                 
                 renderEquipeTable(equipeSellers);
-                renderEquipeSellers(equipeSellers);
-                updateEquipeChart(equipeSellers, equipe);
+                renderEquipeSellersFevereiro(equipeSellers);
+                renderEquipeSellersMarco(equipeSellers);
+                updateEquipeChartFevereiro(equipeSellers, equipe);
+                updateEquipeChartMarco(equipeSellers, equipe);
                 console.log('Sucesso! Dados da equipe carregados.');
             } catch (error) {
                 console.error('Erro:', error);
@@ -623,15 +644,15 @@
             }
         }
         
-        // Gerar tabela de vendedores (equipe)
-        function renderEquipeSellers(equipeSellers) {
-            equipeSellersContainer.innerHTML = '';
+        // Gerar tabela de vendedores (equipe - Fevereiro, dias 1-18)
+        function renderEquipeSellersFevereiro(equipeSellers) {
+            equipeSellersFevereiro.innerHTML = '';
             equipeSellers.forEach((seller, sellerIndex) => {
                 const sellerDiv = document.createElement('div');
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
-                    <div class="seller-header" onclick="toggleSellerEquipe(${sellerIndex})">${seller.nome} - Total Leads: ${seller.totalLeads} | Total Vendas: ${seller.totalVendas} | Conversão: ${seller.totalConversao.toFixed(2)}% | Status: <span class="${seller.atingiuGeral ? 'success' : 'error'}">${seller.atingiuGeral ? 'Atingiu Meta Geral' : 'Não Atingiu'}</span></div>
-                    <div class="seller-details" id="equipe-seller-${sellerIndex}">
+                    <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                    <div class="seller-details" id="equipe-seller-fevereiro-${sellerIndex}">
                         <table>
                             <thead>
                                 <tr>
@@ -643,7 +664,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${seller.days.map((day) => `
+                                ${seller.days.slice(0, 18).map((day) => `
                                     <tr>
                                         <td>${day.dia}</td>
                                         <td>${day.leads}</td>
@@ -656,13 +677,62 @@
                         </table>
                     </div>
                 `;
-                equipeSellersContainer.appendChild(sellerDiv);
+                equipeSellersFevereiro.appendChild(sellerDiv);
             });
         }
         
-        // Toggle para expandir/recolher vendedor (equipe)
-        function toggleSellerEquipe(index) {
-            const details = document.getElementById(`equipe-seller-${index}`);
+        // Gerar tabela de vendedores (equipe - Março, dias 19-40)
+        function renderEquipeSellersMarco(equipeSellers) {
+            equipeSellersMarco.innerHTML = '';
+            equipeSellers.forEach((seller, sellerIndex) => {
+                const sellerDiv = document.createElement('div');
+                sellerDiv.className = 'seller-section';
+                sellerDiv.innerHTML = `
+                    <div class="seller-header" onclick="toggleSellerEquipeMarco(${sellerIndex})">${seller.nome} - Total Leads Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Março: ${seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Março: ${(seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(18, 40).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(18, 40).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                    <div class="seller-details" id="equipe-seller-marco-${sellerIndex}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Dia</th>
+                                    <th>Leads Distribuídos</th>
+                                    <th>Vendas</th>
+                                    <th>Conversão (%)</th>
+                                    <th>Status Meta (7 vendas/dia)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${seller.days.slice(18, 40).map((day) => `
+                                    <tr>
+                                        <td>${day.dia}</td>
+                                        <td>${day.leads}</td>
+                                        <td>${day.vendas}</td>
+                                        <td>${day.conversao.toFixed(2)}%</td>
+                                        <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                equipeSellersMarco.appendChild(sellerDiv);
+            });
+        }
+        
+        // Toggle para expandir/recolher vendedor (equipe - Fevereiro)
+        function toggleSellerEquipeFevereiro(index) {
+            const details = document.getElementById(`equipe-seller-fevereiro-${index}`);
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Toggle para expandir/recolher vendedor (equipe - Março)
+        function toggleSellerEquipeMarco(index) {
+            const details = document.getElementById(`equipe-seller-marco-${index}`);
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Toggle para expandir/recolher vendedor (liderança)
+        function toggleSeller(index) {
+            const details = document.getElementById(`seller-${index}`);
             details.style.display = details.style.display === 'none' ? 'block' : 'none';
         }
         
@@ -724,22 +794,65 @@
             });
         }
         
-        // Atualizar gráfico da equipe
-        function updateEquipeChart(equipeSellers, equipe) {
-            if (equipeChart) equipeChart.destroy();
-            const equipeCtx = document.getElementById('equipeTeamChart').getContext('2d');
+        // Atualizar gráfico da equipe (Fevereiro)
+        function updateEquipeChartFevereiro(equipeSellers, equipe) {
+            if (equipeChartFevereiro) equipeChartFevereiro.destroy();
+            const equipeCtx = document.getElementById('equipeTeamChartFevereiro').getContext('2d');
             
-            equipeChart = new Chart(equipeCtx, {
+            equipeChartFevereiro = new Chart(equipeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Clientes Recebidos', 'Vendas Totais', 'Conversão (%)'],
+                    labels: ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)'],
                     datasets: [
                         { 
                             label: equipe.toUpperCase(), 
                             data: [
-                                equipeSellers.reduce((sum, s) => sum + s.totalLeads, 0),
-                                equipeSellers.reduce((sum, s) => sum + s.totalVendas, 0),
-                                equipeSellers.reduce((sum, s) => sum + s.totalConversao, 0) / equipeSellers.length
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
+                            ], 
+                            backgroundColor: ['lightblue', 'blue', 'green'], 
+                            barThickness: 50 
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    scales: { 
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataIndex === 2) {
+                                        return context.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                    }
+                                    return context.label + ': ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Atualizar gráfico da equipe (Março)
+        function updateEquipeChartMarco(equipeSellers, equipe) {
+            if (equipeChartMarco) equipeChartMarco.destroy();
+            const equipeCtx = document.getElementById('equipeTeamChartMarco').getContext('2d');
+            
+            equipeChartMarco = new Chart(equipeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)'],
+                    datasets: [
+                        { 
+                            label: equipe.toUpperCase(), 
+                            data: [
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
                             ], 
                             backgroundColor: ['lightblue', 'blue', 'green'], 
                             barThickness: 50 
