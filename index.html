@@ -305,7 +305,7 @@
     </div>
 	
 	<script>
-        let currentSector = '';
+                let currentSector = '';
         let equipeChartFevereiro, equipeChartMarco;
         const tableBody = document.querySelector('#dataTable tbody');
         const sellersContainer = document.getElementById('sellersContainer');
@@ -604,8 +604,8 @@
                     renderEquipeSellersFevereiroDireto(equipeSellers);
                     renderEquipeSellersMarcoDireto(equipeSellers);
                 }
-                updateEquipeChartFevereiro(equipeSellers, equipe);
-                updateEquipeChartMarco(equipeSellers, equipe);
+                updateEquipeChartFevereiro(equipeSellers, equipe, isAmostragem);
+                updateEquipeChartMarco(equipeSellers, equipe, isAmostragem);
                 console.log('Sucesso! Dados da equipe carregados.');
             } catch (error) {
                 console.error('Erro:', error);
@@ -622,32 +622,6 @@
                     <td>${row.distribuida}</td>
                     <td>${row.vendas}</td>
                     <td>${row.conversao.toFixed(2)}%</td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-        
-        // Gerar tabela por dia (equipe)
-        function renderEquipeTable(equipeSellers) {
-            equipeDataTableBody.innerHTML = '';
-            for (let d = 0; d < days; d++) {
-                const distribuida = equipeSellers.reduce((sum, s) => sum + s.days[d].leads, 0);
-                const vendas = equipeSellers.reduce((sum, s) => sum + s.days[d].vendas, 0);
-                const conversao = distribuida > 0 ? (vendas / distribuida) * 100 : 0;
-                const digitados = equipeSellers.reduce((sum, s) => sum + s.days[d].digitados, 0);
-                const preAprovados = equipeSellers.reduce((sum, s) => sum + s.days[d].preAprovados, 0);
-                const poupancaSocial = equipeSellers.reduce((sum, s) => sum + s.days[d].poupancaSocial, 0);
-                const outros = equipeSellers.reduce((sum, s) => sum + s.days[d].outros, 0);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${d+1}</td>
-                    <td>${distribuida}</td>
-                    <td>${vendas}</td>
-                    <td>${conversao.toFixed(2)}%</td>
-                    <td>${digitados}</td>
-                    <td>${preAprovados}</td>
-                    <td>${poupancaSocial}</td>
-                    <td>${outros}</td>
                 `;
                                 equipeDataTableBody.appendChild(tr);
             }
@@ -924,9 +898,9 @@
             const sumVendas18 = data.slice(0, 18).reduce((sum, row) => sum + row.vendas, 0);
             const avgConversao18 = sumDistribuida18 > 0 ? (sumVendas18 / sumDistribuida18) * 100 : 0;
             
-            totalDistribuida18.textContent = sumDistribuida18;
+                        totalDistribuida18.textContent = sumDistribuida18;
             totalVendas18.textContent = sumVendas18;
-                        totalConversao18.textContent = avgConversao18.toFixed(2) + '%';
+            totalConversao18.textContent = avgConversao18.toFixed(2) + '%';
             
             const sumDistribuida40 = data.slice(18, 40).reduce((sum, row) => sum + row.distribuida, 0);
             const sumVendas40 = data.slice(18, 40).reduce((sum, row) => sum + row.vendas, 0);
@@ -955,27 +929,35 @@
         }
         
         // Atualizar gráfico da equipe (Fevereiro)
-        function updateEquipeChartFevereiro(equipeSellers, equipe) {
+        function updateEquipeChartFevereiro(equipeSellers, equipe, isAmostragem = false) {
             if (equipeChartFevereiro) equipeChartFevereiro.destroy();
             const equipeCtx = document.getElementById('equipeTeamChartFevereiro').getContext('2d');
+            
+            const labels = isAmostragem ? ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)', 'Digitados (Fev)', 'Pré Aprovados (Fev)', 'Poupança Social (Fev)', 'Outros Motivos (Fev)'] : ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)'];
+            const dataValues = isAmostragem ? [
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.outros, 0), 0)
+            ] : [
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
+            ];
+            const backgroundColors = isAmostragem ? ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'] : ['lightblue', 'blue', 'green'];
             
             equipeChartFevereiro = new Chart(equipeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Clientes Recebidos (Fev)', 'Vendas Totais (Fev)', 'Conversão (%) (Fev)', 'Digitados (Fev)', 'Pré Aprovados (Fev)', 'Poupança Social (Fev)', 'Outros Motivos (Fev)'],
+                    labels: labels,
                     datasets: [
                         { 
                             label: equipe.toUpperCase(), 
-                            data: [
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(0, 18).reduce((sum2, d) => sum2 + d.outros, 0), 0)
-                            ], 
-                            backgroundColor: ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'], 
+                            data: dataValues, 
+                            backgroundColor: backgroundColors, 
                             barThickness: 50 
                         }
                     ]
@@ -1002,27 +984,35 @@
         }
         
         // Atualizar gráfico da equipe (Março)
-        function updateEquipeChartMarco(equipeSellers, equipe) {
+        function updateEquipeChartMarco(equipeSellers, equipe, isAmostragem = false) {
             if (equipeChartMarco) equipeChartMarco.destroy();
             const equipeCtx = document.getElementById('equipeTeamChartMarco').getContext('2d');
+            
+            const labels = isAmostragem ? ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)', 'Digitados (Mar)', 'Pré Aprovados (Mar)', 'Poupança Social (Mar)', 'Outros Motivos (Mar)'] : ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)'];
+            const dataValues = isAmostragem ? [
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.outros, 0), 0)
+            ] : [
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
+                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0
+            ];
+            const backgroundColors = isAmostragem ? ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'] : ['lightblue', 'blue', 'green'];
             
             equipeChartMarco = new Chart(equipeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Clientes Recebidos (Mar)', 'Vendas Totais (Mar)', 'Conversão (%) (Mar)', 'Digitados (Mar)', 'Pré Aprovados (Mar)', 'Poupança Social (Mar)', 'Outros Motivos (Mar)'],
+                    labels: labels,
                     datasets: [
                         { 
                             label: equipe.toUpperCase(), 
-                            data: [
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0) > 0 ? (equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.vendas, 0), 0) / equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.leads, 0), 0)) * 100 : 0,
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.digitados, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.preAprovados, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.poupancaSocial, 0), 0),
-                                equipeSellers.reduce((sum, s) => sum + s.days.slice(18, 40).reduce((sum2, d) => sum2 + d.outros, 0), 0)
-                            ], 
-                            backgroundColor: ['lightblue', 'blue', 'green', 'orange', 'purple', 'pink', 'gray'], 
+                            data: dataValues, 
+                            backgroundColor: backgroundColors, 
                             barThickness: 50 
                         }
                     ]
