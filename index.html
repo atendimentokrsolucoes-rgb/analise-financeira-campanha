@@ -166,6 +166,42 @@
             <canvas id="teamChart"></canvas>
         </div>
         
+        <div class="section">
+            <h2>Controle para avaliação de metas</h2>
+            <table id="metaTable">
+                <tbody>
+                    <tr>
+                        <td>Quantos dias foram distribuídos 2100 clientes ou MAIS:</td>
+                        <td id="diasDistribuidaMais2100">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias foram distribuídos 2100 clientes ou MENOS:</td>
+                        <td id="diasDistribuidaMenos2100">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias tiveram MAIS de 210 contratos:</td>
+                        <td id="diasVendasMais210">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias tiveram MENOS de 210 contratos:</td>
+                        <td id="diasVendasMenos210">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias tiveram conversão de 10% ou MAIS:</td>
+                        <td id="diasConversaoMais10">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias tiveram conversão de 7% a 9,99%:</td>
+                        <td id="diasConversao7a9">0</td>
+                    </tr>
+                    <tr>
+                        <td>Quantos dias tiveram conversão MENOS de 7%:</td>
+                        <td id="diasConversaoMenos7">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
 		<div class="section">
             <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
             <p id="financeResults">Carregando...</p>
@@ -184,6 +220,13 @@
         const totalDistribuida40 = document.getElementById('totalDistribuida40');
         const totalVendas40 = document.getElementById('totalVendas40');
         const totalConversao40 = document.getElementById('totalConversao40');
+        const diasDistribuidaMais2100 = document.getElementById('diasDistribuidaMais2100');
+        const diasDistribuidaMenos2100 = document.getElementById('diasDistribuidaMenos2100');
+        const diasVendasMais210 = document.getElementById('diasVendasMais210');
+        const diasVendasMenos210 = document.getElementById('diasVendasMenos210');
+        const diasConversaoMais10 = document.getElementById('diasConversaoMais10');
+        const diasConversao7a9 = document.getElementById('diasConversao7a9');
+        const diasConversaoMenos7 = document.getElementById('diasConversaoMenos7');
         const financeResults = document.getElementById('financeResults');
         const ctx = document.getElementById('progressChart').getContext('2d');
         
@@ -277,6 +320,37 @@ function calculateTeamData() {
                     }
                 }
             });
+        }
+        
+        // Função para calcular e renderizar tabela de metas
+        function calculateMetaTable() {
+            let diasDistMais2100 = 0;
+            let diasDistMenos2100 = 0;
+            let diasVendMais210 = 0;
+            let diasVendMenos210 = 0;
+            let diasConvMais10 = 0;
+            let diasConv7a9 = 0;
+            let diasConvMenos7 = 0;
+            
+            data.forEach(day => {
+                if (day.distribuida >= 2100) diasDistMais2100++;
+                else diasDistMenos2100++;
+                
+                if (day.vendas > 210) diasVendMais210++;
+                else diasVendMenos210++;
+                
+                if (day.conversao >= 10) diasConvMais10++;
+                else if (day.conversao >= 7) diasConv7a9++;
+                else diasConvMenos7++;
+            });
+            
+            diasDistribuidaMais2100.textContent = diasDistMais2100;
+            diasDistribuidaMenos2100.textContent = diasDistMenos2100;
+            diasVendasMais210.textContent = diasVendMais210;
+            diasVendasMenos210.textContent = diasVendMenos210;
+            diasConversaoMais10.textContent = diasConvMais10;
+            diasConversao7a9.textContent = diasConv7a9;
+            diasConversaoMenos7.textContent = diasConvMenos7;
         }
         
         // Função para carregar dados da planilha via SheetDB
