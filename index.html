@@ -691,14 +691,14 @@
             });
         }
         
-        // Gerar tabela de vendedores (equipe direta - Fevereiro, dias 1-18 - sem totais extras)
+                // Gerar tabela de vendedores (equipe direta - Fevereiro, dias 1-18 - sem totais extras)
         function renderEquipeSellersFevereiroDireto(equipeSellers) {
             equipeSellersFevereiro.innerHTML = '';
             equipeSellers.forEach((seller, sellerIndex) => {
                 const sellerDiv = document.createElement('div');
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
-                                        <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                    <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
                     <div class="seller-details" id="equipe-seller-fevereiro-${sellerIndex}">
                         <table>
                             <thead>
@@ -708,10 +708,6 @@
                                     <th>Vendas</th>
                                     <th>Conversão (%)</th>
                                     <th>Status Meta (7 vendas/dia)</th>
-                                    <th>Digitados</th>
-                                    <th>Pré Aprovados</th>
-                                    <th>Poupança Social</th>
-                                    <th>Outros Motivos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -722,10 +718,6 @@
                                         <td>${day.vendas}</td>
                                         <td>${day.conversao.toFixed(2)}%</td>
                                         <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
-                                        <td>${day.digitados}</td>
-                                        <td>${day.preAprovados}</td>
-                                        <td>${day.poupancaSocial}</td>
-                                        <td>${day.outros}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -753,10 +745,6 @@
                                     <th>Vendas</th>
                                     <th>Conversão (%)</th>
                                     <th>Status Meta (7 vendas/dia)</th>
-                                    <th>Digitados</th>
-                                    <th>Pré Aprovados</th>
-                                    <th>Poupança Social</th>
-                                    <th>Outros Motivos</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -767,10 +755,6 @@
                                         <td>${day.vendas}</td>
                                         <td>${day.conversao.toFixed(2)}%</td>
                                         <td class="${day.atingiu ? 'success' : 'error'}">${day.atingiu ? 'Atingiu' : 'Não Atingiu'}</td>
-                                        <td>${day.digitados}</td>
-                                        <td>${day.preAprovados}</td>
-                                        <td>${day.poupancaSocial}</td>
-                                        <td>${day.outros}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
