@@ -34,7 +34,7 @@
         .logo { background: white; border: 2px solid red; padding: 10px; display: inline-block; margin-bottom: 20px; }
         .logo-text { color: red; font-size: 24px; font-weight: bold; }
         .select-text { color: red; font-size: 18px; font-weight: bold; text-transform: uppercase; }
-        .amostragem-title { color: #4CAF50; font-size: 16px; font-weight: bold; margin-top: 30px; }
+        .amostragem-title { color: red; font-size: 16px; font-weight: bold; margin-top: 30px; }
         .amostragem-buttons { margin-top: 10px; }
         hr { width: 100%; border: 1px solid #ddd; margin: 20px 0; }
         /* Conteúdo principal */
@@ -77,7 +77,183 @@
         <h1>Análise Financeira – Campanha Especial (40 dias úteis)</h1>
         
         <div id="lideranca-content">
-            <!-- Conteúdo de Liderança (igual ao anterior) -->
+            <div class="section premissas">
+                <h2>Premissas Operacionais</h2>
+                <p><strong>Vendedores:</strong> 32 | <strong>Leads por vendedor/dia:</strong> 70 | <strong>Leads/dia total:</strong> 2.240 | <strong>Dias úteis:</strong> 40 | <strong>Leads totais:</strong> 89.600</p>
+                <p><strong>Meta:</strong> 10% de conversão (8.960 contratos totais). Cada vendedor precisa de 7 contratos por dia (7 contratos * 32 vendedores = 224 contratos por dia, totalizando 8.960 no período).</p>
+            </div>
+            
+            <div class="section">
+                <h2>Custos Fixos (2 Meses) - Detalhados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Detalhes</th>
+                            <th>Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Coordenadores</td>
+                            <td>2 x R$ 15.000 x 2 meses</td>
+                            <td>60.000</td>
+                        </tr>
+                        <tr>
+                            <td>Supervisores</td>
+                            <td>5 x R$ 5.000 x 2 meses</td>
+                            <td>50.000</td>
+                        </tr>
+                        <tr>
+                            <td>Vendedores - Fixo</td>
+                            <td>32 x R$ 1.800 x 2 meses</td>
+                            <td>115.200</td>
+                        </tr>
+                        <tr>
+                            <td>RH / Financeiro / Apoio</td>
+                            <td>-</td>
+                            <td>20.000</td>
+                        </tr>
+                        <tr>
+                            <td>CRM</td>
+                            <td>-</td>
+                            <td>13.000</td>
+                        </tr>
+                        <tr>
+                            <td>APIs WhatsApp</td>
+                            <td>10 ativas + 10 reserva</td>
+                            <td>9.000</td>
+                        </tr>
+                        <tr class="totals">
+                            <td colspan="2"><strong>Total Custos Fixos</strong></td>
+                            <td><strong>267.200</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>Custos Variáveis - Detalhados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Detalhes</th>
+                            <th>Valor (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Templates WhatsApp</td>
+                            <td>89.600 envios x R$ 0,30</td>
+                            <td>26.880</td>
+                        </tr>
+                        <tr class="totals">
+                            <td colspan="2"><strong>Total Custos Variáveis</strong></td>
+                            <td><strong>26.880</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>Custo Total da Operação:</strong> R$ 294.080</p>
+            </div>
+            
+            <div class="section">
+                <h2>Tabela de Distribuição e Vendas por Dia (Calculada Automaticamente)</h2>
+                <p>Essa tabela é a soma dos dados da tabela de vendedores abaixo, por dia. Não editável.</p>
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Dia</th>
+                            <th>Quantidade Distribuída</th>
+                            <th>Vendas do Dia</th>
+                            <th>Conversão (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Linhas geradas dinamicamente -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="totals">
+                            <td>Total Geral</td>
+                            <td id="totalDistribuida">0</td>
+                            <td id="totalVendas">0</td>
+                            <td id="totalConversao">0.00%</td>
+                        </tr>
+                        <tr class="totals">
+                            <td>Total Fevereiro</td>
+                            <td id="totalDistribuida18">0</td>
+                            <td id="totalVendas18">0</td>
+                            <td id="totalConversao18">0.00%</td>
+                        </tr>
+                        <tr class="totals">
+                            <td>Total Março</td>
+                            <td id="totalDistribuida40">0</td>
+                            <td id="totalVendas40">0</td>
+                            <td id="totalConversao40">0.00%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>Tabela de Vendedores (Dados Carregados da Planilha)</h2>
+                <p>Dados sincronizados automaticamente. <button onclick="carregarDadosDaPlanilha()">Atualizar Agora</button></p>
+                <div id="sellersContainer">
+                    <!-- Vendedores gerados dinamicamente -->
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Gráfico: Distribuição vs. Vendas por Dia</h2>
+                <p>Linha vermelha: Meta diária (224 vendas/dia para 10%). Dados da tabela de distribuição.</p>
+                <canvas id="progressChart"></canvas>
+            </div>
+            
+            <div class="section">
+                <h2>Gráfico: Vendas e Conversão por Equipe</h2>
+                <canvas id="teamChart"></canvas>
+            </div>
+            
+            <div class="section">
+                <h2>Controle para avaliação de metas</h2>
+                <table id="metaTable">
+                    <tbody>
+                        <tr>
+                            <td>Quantos dias foram distribuídos 2240 clientes ou MAIS:</td>
+                            <td id="diasDistribuidaMais2100">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias foram distribuídos 2240 clientes ou MENOS:</td>
+                            <td id="diasDistribuidaMenos2100">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias tiveram MAIS de 224 contratos:</td>
+                            <td id="diasVendasMais210">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias tiveram MENOS de 224 contratos:</td>
+                            <td id="diasVendasMenos210">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias tiveram conversão de 10% ou MAIS:</td>
+                            <td id="diasConversaoMais10">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias tiveram conversão de 7% a 9,99%:</td>
+                            <td id="diasConversao7a9">0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantos dias tiveram conversão MENOS de 7%:</td>
+                            <td id="diasConversaoMenos7">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>Receita e Lucro (Atualizado em Tempo Real)</h2>
+                <p id="financeResults">Carregando...</p>
+            </div>
         </div>
         
         <div id="equipe-content" style="display: none;">
@@ -316,11 +492,11 @@
             diasConversaoMenos7.textContent = diasConvMenos7;
         }
         
-        // Função para carregar dados da planilha (liderança)
+        // Função para carregar dados da planilha (liderança - aba "lideranca")
         async function carregarDadosDaPlanilha() {
             try {
-                console.log('Carregando dados...');
-                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje');
+                console.log('Carregando dados da aba lideranca...');
+                const response = await fetch('https://sheetdb.io/api/v1/ckmlpal5zpsje/tab/lideranca');
                 const sheetData = await response.json();
                 console.log('Número de linhas no JSON:', sheetData.length);
                 console.log('Primeiro item (cabeçalho):', sheetData[0]);
@@ -365,7 +541,7 @@
             }
         }
         
-        // Função para carregar dados da planilha (equipe - filtrada)
+        // Função para carregar dados da planilha (equipe - aba específica)
         async function carregarDadosDaPlanilhaEquipe(equipe) {
             try {
                 console.log('Carregando dados da equipe:', equipe);
