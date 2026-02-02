@@ -49,12 +49,12 @@
         </div>
         <div class="select-text">Selecione o Setor</div>
         <div class="login-buttons">
-            <button class="login-button" onclick="selectSector('lideranca')">LIDERANÇA</button>
-            <button class="login-button" onclick="selectSector('esmeralda')">ESMERALDA</button>
-            <button class="login-button" onclick="selectSector('foguete')">FOGUETE</button>
-            <button class="login-button" onclick="selectSector('fadas')">FADAS</button>
-            <button class="login-button" onclick="selectSector('fenix')">FENIX</button>
-            <button class="login-button" onclick="selectSector('aguia')">AGUIA</button>
+            <button class="login-button" onclick="selectSector('lideranca', false)">LIDERANÇA</button>
+            <button class="login-button" onclick="selectSector('esmeralda', false)">ESMERALDA</button>
+            <button class="login-button" onclick="selectSector('foguete', false)">FOGUETE</button>
+            <button class="login-button" onclick="selectSector('fadas', false)">FADAS</button>
+            <button class="login-button" onclick="selectSector('fenix', false)">FENIX</button>
+            <button class="login-button" onclick="selectSector('aguia', false)">AGUIA</button>
         </div>
         <div id="password-input">
             <input type="password" id="password-field" placeholder="Digite a senha" maxlength="20">
@@ -64,11 +64,11 @@
         <hr>
         <div class="amostragem-title">DADOS DE AMOSTRAGEM EQUIPES</div>
         <div class="amostragem-buttons">
-            <button class="login-button" onclick="selectSector('esmeralda')">ESMERALDA</button>
-            <button class="login-button" onclick="selectSector('foguete')">FOGUETE</button>
-            <button class="login-button" onclick="selectSector('fadas')">FADAS</button>
-            <button class="login-button" onclick="selectSector('fenix')">FENIX</button>
-            <button class="login-button" onclick="selectSector('aguia')">AGUIA</button>
+            <button class="login-button" onclick="selectSector('esmeralda', true)">ESMERALDA</button>
+            <button class="login-button" onclick="selectSector('foguete', true)">FOGUETE</button>
+            <button class="login-button" onclick="selectSector('fadas', true)">FADAS</button>
+            <button class="login-button" onclick="selectSector('fenix', true)">FENIX</button>
+            <button class="login-button" onclick="selectSector('aguia', true)">AGUIA</button>
         </div>
     </div>
 
@@ -297,6 +297,7 @@
 	
 	<script>
         let currentSector = '';
+        let isAmostragem = false;
         let equipeChartFevereiro, equipeChartMarco;
         const tableBody = document.querySelector('#dataTable tbody');
         const sellersContainer = document.getElementById('sellersContainer');
@@ -329,10 +330,10 @@
         const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
         const sellers = Array.from({length: 33}, (_, i) => ({
             nome: i < 32 ? `Vendedor ${i+1}` : 'Template Global',
-                        days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
+            days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false, digitados: 0, preAprovados: 0, poupancaSocial: 0, outros: 0 })),
             totalLeads: 0,
             totalVendas: 0,
-            totalConversao: 0,
+                        totalConversao: 0,
             atingiuGeral: false
         }));
         
@@ -345,8 +346,9 @@
             aguia: '12345678'
         };
         
-        function selectSector(sector) {
+        function selectSector(sector, amostragem = false) {
             currentSector = sector;
+            isAmostragem = amostragem;
             document.getElementById('password-input').style.display = 'block';
             document.getElementById('login-error').textContent = '';
         }
@@ -363,9 +365,6 @@
                 } else {
                     document.getElementById('lideranca-content').style.display = 'none';
                     document.getElementById('equipe-content').style.display = 'block';
-                    // Detecta se o clique foi na primeira seção (login-buttons) ou segunda (amostragem-buttons)
-                    const clickedButton = event.target;
-                    const isAmostragem = clickedButton.closest('.amostragem-buttons') !== null;
                     carregarDadosDaPlanilhaEquipe(currentSector, isAmostragem);
                 }
             } else {
@@ -695,11 +694,11 @@
         // Gerar tabela de vendedores (equipe direta - Fevereiro, dias 1-18 - sem totais extras)
         function renderEquipeSellersFevereiroDireto(equipeSellers) {
             equipeSellersFevereiro.innerHTML = '';
-                        equipeSellers.forEach((seller, sellerIndex) => {
+            equipeSellers.forEach((seller, sellerIndex) => {
                 const sellerDiv = document.createElement('div');
                 sellerDiv.className = 'seller-section';
                 sellerDiv.innerHTML = `
-                    <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
+                                        <div class="seller-header" onclick="toggleSellerEquipeFevereiro(${sellerIndex})">${seller.nome} - Total Leads Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)} | Total Vendas Fevereiro: ${seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0)} | Conversão Fevereiro: ${(seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0) > 0 ? (seller.days.slice(0, 18).reduce((sum, d) => sum + d.vendas, 0) / seller.days.slice(0, 18).reduce((sum, d) => sum + d.leads, 0)) * 100 : 0).toFixed(2)}%</div>
                     <div class="seller-details" id="equipe-seller-fevereiro-${sellerIndex}">
                         <table>
                             <thead>
