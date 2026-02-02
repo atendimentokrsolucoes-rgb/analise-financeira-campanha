@@ -31,8 +31,8 @@
         
         <div class="section premissas">
             <h2>Premissas Operacionais</h2>
-            <p><strong>Vendedores:</strong> 30 | <strong>Leads por vendedor/dia:</strong> 70 | <strong>Leads/dia total:</strong> 2.100 | <strong>Dias úteis:</strong> 40 | <strong>Leads totais:</strong> 84.000</p>
-            <p><strong>Meta:</strong> 10% de conversão (8.400 contratos totais). Cada vendedor precisa de 7 contratos por dia (7 contratos * 30 vendedores = 210 contratos por dia, totalizando 8.400 no período).</p>
+            <p><strong>Vendedores:</strong> 32 | <strong>Leads por vendedor/dia:</strong> 70 | <strong>Leads/dia total:</strong> 2.240 | <strong>Dias úteis:</strong> 40 | <strong>Leads totais:</strong> 89.600</p>
+            <p><strong>Meta:</strong> 10% de conversão (8.960 contratos totais). Cada vendedor precisa de 7 contratos por dia (7 contratos * 32 vendedores = 224 contratos por dia, totalizando 8.960 no período).</p>
         </div>
         
         <div class="section">
@@ -58,8 +58,8 @@
                     </tr>
                     <tr>
                         <td>Vendedores - Fixo</td>
-                        <td>30 x R$ 1.800 x 2 meses</td>
-                        <td>108.000</td>
+                        <td>32 x R$ 1.800 x 2 meses</td>
+                        <td>115.200</td>
                     </tr>
                     <tr>
                         <td>RH / Financeiro / Apoio</td>
@@ -78,7 +78,7 @@
                     </tr>
                     <tr class="totals">
                         <td colspan="2"><strong>Total Custos Fixos</strong></td>
-                        <td><strong>260.000</strong></td>
+                        <td><strong>267.200</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -97,16 +97,16 @@
                 <tbody>
                     <tr>
                         <td>Templates WhatsApp</td>
-                        <td>84.000 envios x R$ 0,30</td>
-                        <td>25.200</td>
+                        <td>89.600 envios x R$ 0,30</td>
+                        <td>26.880</td>
                     </tr>
                     <tr class="totals">
                         <td colspan="2"><strong>Total Custos Variáveis</strong></td>
-                        <td><strong>25.200</strong></td>
+                        <td><strong>26.880</strong></td>
                     </tr>
                 </tbody>
             </table>
-            <p><strong>Custo Total da Operação:</strong> R$ 285.200</p>
+            <p><strong>Custo Total da Operação:</strong> R$ 294.080</p>
         </div>
         
         <div class="section">
@@ -157,7 +157,7 @@
         
         <div class="section">
             <h2>Gráfico: Distribuição vs. Vendas por Dia</h2>
-            <p>Linha vermelha: Meta diária (210 vendas/dia para 10%). Dados da tabela de distribuição.</p>
+            <p>Linha vermelha: Meta diária (224 vendas/dia para 10%). Dados da tabela de distribuição.</p>
             <canvas id="progressChart"></canvas>
         </div>
         
@@ -171,19 +171,19 @@
             <table id="metaTable">
                 <tbody>
                     <tr>
-                        <td>Quantos dias foram distribuídos 2100 clientes ou MAIS:</td>
+                        <td>Quantos dias foram distribuídos 2240 clientes ou MAIS:</td>
                         <td id="diasDistribuidaMais2100">0</td>
                     </tr>
                     <tr>
-                        <td>Quantos dias foram distribuídos 2100 clientes ou MENOS:</td>
+                        <td>Quantos dias foram distribuídos 2240 clientes ou MENOS:</td>
                         <td id="diasDistribuidaMenos2100">0</td>
                     </tr>
                     <tr>
-                        <td>Quantos dias tiveram MAIS de 210 contratos:</td>
+                        <td>Quantos dias tiveram MAIS de 224 contratos:</td>
                         <td id="diasVendasMais210">0</td>
                     </tr>
                     <tr>
-                        <td>Quantos dias tiveram MENOS de 210 contratos:</td>
+                        <td>Quantos dias tiveram MENOS de 224 contratos:</td>
                         <td id="diasVendasMenos210">0</td>
                     </tr>
                     <tr>
@@ -234,8 +234,8 @@
         let teamChart;  // Adicionado para o gráfico de equipes
         const days = 40;
         const data = Array.from({length: days}, (_, i) => ({ dia: i+1, distribuida: 0, vendas: 0, conversao: 0 }));
-        const sellers = Array.from({length: 31}, (_, i) => ({
-            nome: i < 30 ? `Vendedor ${i+1}` : 'Template Global',
+        const sellers = Array.from({length: 33}, (_, i) => ({
+            nome: i < 32 ? `Vendedor ${i+1}` : 'Template Global',
             days: Array.from({length: days}, (_, j) => ({ dia: j+1, leads: 0, vendas: 0, conversao: 0, atingiu: false })),
             totalLeads: 0,
             totalVendas: 0,
@@ -245,10 +245,10 @@
 		
         // Função para calcular dados por equipe
 function calculateTeamData() {
-    const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 }, Outros: { vendas: 0, leads: 0, conversao: 0 } };  // Adicionado Outros
+    const teams = { Esmeralda: { vendas: 0, leads: 0, conversao: 0 }, Foguete: { vendas: 0, leads: 0, conversao: 0 }, Outros: { vendas: 0, leads: 0, conversao: 0 }, Fadas: { vendas: 0, leads: 0, conversao: 0 }, Fenix: { vendas: 0, leads: 0, conversao: 0 }, Aguia: { vendas: 0, leads: 0, conversao: 0 } };  // Adicionadas novas equipes
     
-    sellers.slice(0, 30).forEach(seller => {
-        const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : 'Outros';  // Agrupa em Outros
+    sellers.slice(0, 32).forEach(seller => {
+        const team = seller.nome.includes('(ESMERALDA)') ? 'Esmeralda' : seller.nome.includes('(FOGUETE)') ? 'Foguete' : seller.nome.includes('(FADAS)') ? 'Fadas' : seller.nome.includes('(FENIX)') ? 'Fenix' : seller.nome.includes('(AGUIA)') ? 'Aguia' : 'Outros';  // Adicionadas novas equipes
         teams[team].vendas += seller.totalVendas;
         teams[team].leads += seller.totalLeads;
     });
@@ -333,10 +333,10 @@ function calculateTeamData() {
             let diasConvMenos7 = 0;
             
             data.forEach(day => {
-                if (day.distribuida >= 2100) diasDistMais2100++;
+                if (day.distribuida >= 2240) diasDistMais2100++;  // Ajustado para 2240 (32 vendedores * 70)
                 else diasDistMenos2100++;
                 
-                if (day.vendas > 210) diasVendMais210++;
+                if (day.vendas > 224) diasVendMais210++;  // Ajustado para 224 (32 vendedores * 7)
                 else diasVendMenos210++;
                 
                 if (day.conversao >= 10) diasConvMais10++;
@@ -368,8 +368,8 @@ function calculateTeamData() {
                     return;
                 }
                 
-                // Assumindo linhas 1-30 são vendedores (linha 0 é cabeçalho, 1-30 são dados) - ajuste para 30 linhas
-                sheetData.slice(1, 31).forEach((linha, index) => {  // slice(1,31) para pegar 30 vendedores
+                // Assumindo linhas 1-32 são vendedores (linha 0 é cabeçalho, 1-32 são dados) - ajuste para 32 linhas
+                sheetData.slice(1, 33).forEach((linha, index) => {  // slice(1,33) para pegar 32 vendedores
                     const vendedorNome = linha[''] || linha.Vendedor || linha.Nome || `Vendedor ${index + 1}`;  // Chave vazia para nome
                     sellers[index].nome = vendedorNome;
                     
@@ -471,11 +471,11 @@ function calculateTeamData() {
             seller.atingiuGeral = seller.totalConversao >= 10;
         }
         
-        // Calcular dados globais (tabela por dia) - soma apenas dos vendedores 1-30
+        // Calcular dados globais (tabela por dia) - soma apenas dos vendedores 1-32
         function calculateGlobalData() {
             for (let d = 0; d < days; d++) {
-                data[d].distribuida = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].leads, 0);
-                data[d].vendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.days[d].vendas, 0);
+                data[d].distribuida = sellers.slice(0, 32).reduce((sum, s) => sum + s.days[d].leads, 0);
+                data[d].vendas = sellers.slice(0, 32).reduce((sum, s) => sum + s.days[d].vendas, 0);
                 data[d].conversao = data[d].distribuida > 0 ? (data[d].vendas / data[d].distribuida) * 100 : 0;
             }
             const sumDistribuida = data.reduce((sum, row) => sum + row.distribuida, 0);
@@ -515,20 +515,20 @@ function calculateTeamData() {
                     datasets: [
                         { label: 'Distribuída', data: data.map(d => d.distribuida), borderColor: 'blue', fill: false },
                         { label: 'Vendas', data: data.map(d => d.vendas), borderColor: 'green', fill: false },
-                        { label: 'Meta (210)', data: Array(days).fill(210), borderColor: 'red', borderDash: [5, 5], fill: false }
+                        { label: 'Meta (224)', data: Array(days).fill(224), borderColor: 'red', borderDash: [5, 5], fill: false }
                     ]
                 },
                 options: { responsive: true }
             });
         }
         
-       // Atualizar finanças - soma apenas dos vendedores 1-30
+       // Atualizar finanças - soma apenas dos vendedores 1-32
 function updateFinance() {
-    const sumVendas = sellers.slice(0, 30).reduce((sum, s) => sum + s.totalVendas, 0);
+    const sumVendas = sellers.slice(0, 32).reduce((sum, s) => sum + s.totalVendas, 0);
     const receita = sumVendas * 100;
-    const atingiram = sellers.slice(0, 30).filter(s => s.atingiuGeral).length;
+    const atingiram = sellers.slice(0, 32).filter(s => s.atingiuGeral).length;
     const bonus = atingiram * 1200;
-    const custoTotalOperacao = 285200;
+    const custoTotalOperacao = 294080;
     const custoTotal = custoTotalOperacao + bonus;
     const lucro = receita - custoTotal;
     
